@@ -19,7 +19,7 @@ process AMRFINDERPLUS {
     """
     # Create local database directory and update
     mkdir -p amr_db
-    amrfinder -u -d amr_db
+    amrfinder_update -d amr_db
     
     # Run AMRFinderPlus using the local database
     amrfinder \\
