@@ -139,15 +139,15 @@ workflow {
     
     // 10. Phylogenetic analysis (if reference provided)
     if (params.reference && !params.skip_phylogeny) {
-        reference_ch = Channel.fromPath(params.reference)
+        reference_file = file(params.reference)
         
-        // Variant calling for each sample
-        SNIPPY(SPADES.out.assembly, reference_ch)
+        // Variant calling for each sample (using reads for better accuracy)
+        SNIPPY(FASTP.out.reads, reference_file)
         
         // Core SNP alignment
         SNIPPY_CORE(
-            SNIPPY.out.snippy_dir.collect(),
-            reference_ch
+            SNIPPY.out.snippy_dir.map { it[1] }.collect(),
+            reference_file
         )
         
         // Build phylogenetic tree

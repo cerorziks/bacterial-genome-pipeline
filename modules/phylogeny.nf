@@ -9,7 +9,7 @@ process SNIPPY {
     publishDir "${params.outdir}/phylogeny/snippy", mode: 'copy'
     
     input:
-    tuple val(sample), path(assembly)
+    tuple val(sample), path(read1), path(read2)
     path reference
     
     output:
@@ -21,7 +21,8 @@ process SNIPPY {
     snippy \\
         --outdir ${sample} \\
         --ref ${reference} \\
-        --ctgs ${assembly} \\
+        --R1 ${read1} \\
+        --R2 ${read2} \\
         --prefix ${sample} \\
         --cpus $task.cpus \\
         --force
