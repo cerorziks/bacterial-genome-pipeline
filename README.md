@@ -13,6 +13,51 @@ A comprehensive Nextflow pipeline for analyzing bacterial genomes from Illumina 
 - **Phylogeny**: Core genome SNP-based phylogenetic tree construction
 - **Reporting**: MultiQC consolidated reports
 
+## Pipeline Workflow
+
+The pipeline processes bacterial genome data through the following stages:
+
+```mermaid
+graph TD
+    A[Paired-End FASTQ Files] --> B[FastQC - Raw Reads]
+    A --> C[fastp Trimming & QC]
+    
+    C --> D[FastQC - Trimmed Reads]
+    C --> E[SPAdes Assembly]
+    
+    E --> F[QUAST Assembly QC]
+    E --> G[Prokka Annotation]
+    E --> J[MLST Typing]
+    
+    G --> H[AMRFinderPlus]
+    G --> I[VFDB BLAST Virulence]
+    
+    E -.Reference Genome.-> K[Snippy Variant Calling]
+    K --> L[snippy-core Alignment]
+    L --> M[IQ-TREE Phylogeny]
+    L --> N[SNP Distance Matrix]
+    
+    B --> O[MultiQC Report]
+    D --> O
+    F --> O
+    H --> O
+    I --> O
+    
+    style A fill:#e1f5ff,stroke:#0288d1,stroke-width:2px
+    style O fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
+    style M fill:#fff9c4,stroke:#f57c00,stroke-width:2px
+    style H fill:#ffccbc,stroke:#d84315,stroke-width:2px
+    style I fill:#f8bbd0,stroke:#c2185b,stroke-width:2px
+```
+
+**Legend:**
+- 🔵 **Blue** - Input data
+- 🟢 **Green** - Final outputs and reports
+- 🟡 **Yellow** - Phylogenetic analysis
+- 🟠 **Orange** - AMR detection
+- 🔴 **Pink** - Virulence detection
+- **Dashed lines** - Optional analysis (requires reference genome)
+
 ## Requirements
 
 ### Software
