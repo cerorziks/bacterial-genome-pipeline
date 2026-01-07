@@ -5,7 +5,8 @@ A comprehensive Nextflow pipeline for analyzing bacterial genomes from Illumina 
 ## Features
 
 - **Quality Control**: FastQC and fastp for read quality assessment and trimming
-- **Assembly**: SPAdes de novo assembly with QUAST quality metrics
+- **Assembly**: de novo assembly using **SPAdes** (default) or **Shovill** (faster)
+- **Assembly QC**: QUAST quality metrics for assembly assessment
 - **Annotation**: Prokka genome annotation
 - **AMR Detection**: AMRFinderPlus for antimicrobial resistance gene identification
 - **Virulence**: BLAST against VFDB for virulence factor detection
@@ -23,31 +24,37 @@ graph TD
     A --> C[fastp Trimming & QC]
     
     C --> D[FastQC - Trimmed Reads]
-    C --> E[SPAdes Assembly]
+    C --> E{Assembly Selection}
     
-    E --> F[QUAST Assembly QC]
-    E --> G[Prokka Annotation]
-    E --> J[MLST Typing]
+    E -- Default --> E1[SPAdes Assembly]
+    E -- --assembler shovill --> E2[Shovill Assembly]
     
-    G --> H[AMRFinderPlus]
-    G --> I[VFDB BLAST Virulence]
+    E1 --> F[Assembly Results]
+    E2 --> F
     
-    E -.Reference Genome.-> K[Snippy Variant Calling]
-    K --> L[snippy-core Alignment]
-    L --> M[IQ-TREE Phylogeny]
-    L --> N[SNP Distance Matrix]
+    F --> G[QUAST Assembly QC]
+    F --> H[Prokka Annotation]
+    F --> I[MLST Typing]
     
-    B --> O[MultiQC Report]
-    D --> O
-    F --> O
-    H --> O
-    I --> O
+    H --> J[AMRFinderPlus]
+    H --> K[VFDB BLAST Virulence]
+    
+    C -.Reference Genome.-> L[Snippy Variant Calling]
+    L --> M[snippy-core Alignment]
+    M --> N[IQ-TREE Phylogeny]
+    M --> P[SNP Distance Matrix]
+    
+    B --> Q[MultiQC Report]
+    D --> Q
+    G --> Q
+    J --> Q
+    K --> Q
     
     style A fill:#e1f5ff,stroke:#0288d1,stroke-width:2px
-    style O fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
-    style M fill:#fff9c4,stroke:#f57c00,stroke-width:2px
-    style H fill:#ffccbc,stroke:#d84315,stroke-width:2px
-    style I fill:#f8bbd0,stroke:#c2185b,stroke-width:2px
+    style Q fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
+    style N fill:#fff9c4,stroke:#f57c00,stroke-width:2px
+    style J fill:#ffccbc,stroke:#d84315,stroke-width:2px
+    style K fill:#f8bbd0,stroke:#c2185b,stroke-width:2px
 ```
 
 **Legend:**
