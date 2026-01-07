@@ -1,0 +1,41 @@
+# .gitignore for Nextflow Pipeline
+
+# Nextflow work directory
+work/
+
+# Output directory
+results/
+
+# Nextflow logs and reports
+.nextflow/
+.nextflow.log*
+timeline.html
+report.html
+trace.txt
+dag.dot
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+
+# Databases (downloaded)
+VFDB_setB_pro.fas*
+
+# Test data
+test_data/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

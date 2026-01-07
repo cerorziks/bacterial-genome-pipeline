@@ -1,0 +1,56 @@
+/*
+========================================================================================
+    Virulence Factor Detection Module
+========================================================================================
+*/
+
+process VFDB_BLAST {
+    tag "$sample"
+    publishDir "${params.outdir}/virulence", mode: 'copy'
+    
+    input:
+    tuple val(sample), path(protein_fasta)
+    
+    output:
+    tuple val(sample), path("${sample}_virulence.tsv"), emit: results
+    tuple val(sample), path("${sample}_virulence_summary.txt"), emit: summary
+    
+    script:
+    def vfdb = params.vfdb ?: "\$PWD/VFDB_setB_pro.fas"
+    """
+    # Download VFDB if not provided
+    if [ ! -f "${vfdb}" ]; then
+        echo "Downloading VFDB database..."
+        wget -q http://www.mgc.ac.cn/VFs/Down/VFDB_setB_pro.fas.gz
+        gunzip VFDB_setB_pro.fas.gz
+        vfdb_file="VFDB_setB_pro.fas"
+    else
+        vfdb_file="${vfdb}"
+    fi
+    
+    # Create BLAST database
+    makeblastdb -in \$vfdb_file -dbtype prot -out vfdb_db
+    
+    # Run BLAST
+    blastp \\
+        -query ${protein_fasta} \\
+        -db vfdb_db \\
+        -out ${sample}_virulence.tsv \\
+        -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore stitle" \\
+        -evalue 1e-5 \\
+        -num_threads $task.cpus \\
+        -max_target_seqs 1
+    
+    # Create summary
+    if [ -s ${sample}_virulence.tsv ]; then
+        echo "Virulence Factors Found for ${sample}:" > ${sample}_virulence_summary.txt
+        echo "=======================================" >> ${sample}_virulence_summary.txt
+        awk '\$3 >= 70 && \$4 >= 50' ${sample}_virulence.tsv | \\
+            cut -f13 | sed 's/(.*//g' | sort -u >> ${sample}_virulence_summary.txt
+        echo "" >> ${sample}_virulence_summary.txt
+        echo "Total virulence factors (>70% identity, >50 aa): \$(awk '\$3 >= 70 && \$4 >= 50' ${sample}_virulence.tsv | wc -l)" >> ${sample}_virulence_summary.txt
+    else
+        echo "No virulence factors detected for ${sample}" > ${sample}_virulence_summary.txt
+    fi
+    """
+}
