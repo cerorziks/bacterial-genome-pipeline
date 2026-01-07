@@ -61,13 +61,34 @@ graph TD
 ## Requirements
 
 ### Software
-- Nextflow >= 22.10.0
-- Docker or Singularity (recommended)
-- OR all bioinformatics tools installed locally
+- **Nextflow** >= 22.10.0 (Tested with v25.10.2)
+- **Java** 11 or 17 (Tested with OpenJDK 17)
+- **Docker** (Recommended) or **Singularity**
+- **Git** (for cloning the repository)
 
 ### Hardware Recommendations
-- **Minimum**: 8 CPUs, 32 GB RAM
-- **Recommended**: 16 CPUs, 128 GB RAM
+- **Minimum**: 8 CPUs, 32 GB RAM, 100 GB Free Disk Space
+- **Recommended**: 16 CPUs, 128 GB RAM, 500 GB Free Disk Space (for large datasets)
+- *Note: SPAdes assembly is memory-intensive. For large genomes or high depth, ensure at least 32GB RAM is available.*
+
+## Environment Setup
+
+### 1. Install Java and Docker
+Ensure your system has Java and Docker installed. On Ubuntu/Debian:
+```bash
+sudo apt update
+sudo apt install openjdk-17-jdk docker.io
+# Add your user to the docker group
+sudo usermod -aG docker $USER
+# Log out and back in for changes to take effect
+```
+
+### 2. Install Nextflow
+```bash
+curl -s https://get.nextflow.io | bash
+sudo mv nextflow /usr/local/bin/
+sudo chmod +x /usr/local/bin/nextflow
+```
 
 ## Quick Start
 

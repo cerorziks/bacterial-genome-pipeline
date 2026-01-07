@@ -121,7 +121,7 @@ workflow {
     SPADES(FASTP.out.reads)
     
     // 5. Assembly quality assessment
-    QUAST(SPADES.out.assembly.collect())
+    QUAST(SPADES.out.assembly.map { it[1] }.collect())
     
     // 6. Genome annotation
     PROKKA(SPADES.out.assembly)
@@ -159,11 +159,11 @@ workflow {
     
     // 11. MultiQC reporting
     multiqc_files = Channel.empty()
-        .mix(FASTQC_RAW.out.zip.collect().ifEmpty([]))
-        .mix(FASTQC_TRIMMED.out.zip.collect().ifEmpty([]))
-        .mix(FASTP.out.json.collect().ifEmpty([]))
+        .mix(FASTQC_RAW.out.zip.map{it[1]}.collect().ifEmpty([]))
+        .mix(FASTQC_TRIMMED.out.zip.map{it[1]}.collect().ifEmpty([]))
+        .mix(FASTP.out.json.map{it[1]}.collect().ifEmpty([]))
         .mix(QUAST.out.results.ifEmpty([]))
-        .mix(PROKKA.out.txt.collect().ifEmpty([]))
+        .mix(PROKKA.out.txt.map{it[1]}.collect().ifEmpty([]))
     
     MULTIQC(multiqc_files.collect())
 }

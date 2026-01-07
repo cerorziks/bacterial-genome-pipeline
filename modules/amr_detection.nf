@@ -17,14 +17,25 @@ process AMRFINDERPLUS {
     
     script:
     """
-    # Update AMRFinderPlus database
-    amrfinder --update || true
+    # Create local database directory
+    mkdir amr_db
     
-    # Run AMRFinderPlus
+    # Update AMRFinderPlus database in the local directory
+    amrfinder_update -d amr_db || true
+    
+    # Run AMRFinderPlus using the local database
+    # If update failed, it might still find a database if the container has one, 
+    # but usually we need to point to the local one
+    DB_OPTS=""
+    if [ -d "amr_db/latest" ]; then
+        DB_OPTS="-d amr_db/latest"
+    fi
+    
     amrfinder \\
         --protein ${protein_fasta} \\
         --threads $task.cpus \\
         --output ${sample}_amr.tsv \\
+        \$DB_OPTS \\
         --plus
     
     # Create summary

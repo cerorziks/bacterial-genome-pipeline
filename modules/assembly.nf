@@ -17,7 +17,7 @@ process SPADES {
     tuple val(sample), path("${sample}/spades.log"), emit: log
     
     script:
-    def kmers = params.spades_kmers == 'auto' ? 'auto' : "-k ${params.spades_kmers}"
+    def kmers = params.spades_kmers == 'auto' ? '' : "-k ${params.spades_kmers}"
     """
     spades.py \\
         -1 ${read1} \\
