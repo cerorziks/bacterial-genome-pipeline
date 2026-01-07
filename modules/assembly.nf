@@ -6,7 +6,7 @@
 
 process SPADES {
     tag "$sample"
-    publishDir "${params.outdir}/assembly", mode: 'copy'
+    publishDir "${params.outdir}/assembly/spades", mode: 'copy'
     
     input:
     tuple val(sample), path(read1), path(read2)
@@ -27,6 +27,32 @@ process SPADES {
         --memory ${task.memory.toGiga()} \\
         ${kmers} \\
         --careful
+    """
+}
+
+process SHOVILL {
+    tag "$sample"
+    publishDir "${params.outdir}/assembly/shovill", mode: 'copy'
+    
+    input:
+    tuple val(sample), path(read1), path(read2)
+    
+    output:
+    tuple val(sample), path("${sample}/contigs.fasta"), emit: assembly
+    tuple val(sample), path("${sample}/shovill.log"), emit: log
+    
+    script:
+    """
+    shovill \\
+        --R1 ${read1} \\
+        --R2 ${read2} \\
+        --outdir ${sample} \\
+        --cpus $task.cpus \\
+        --ram ${task.memory.toGiga()} \\
+        --force
+        
+    # Standardize output name
+    mv ${sample}/contigs.fa ${sample}/contigs.fasta
     """
 }
 

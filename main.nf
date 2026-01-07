@@ -21,6 +21,7 @@ include { FASTQC as FASTQC_RAW    } from './modules/quality_control'
 include { FASTP                   } from './modules/quality_control'
 include { FASTQC as FASTQC_TRIMMED} from './modules/quality_control'
 include { SPADES                  } from './modules/assembly'
+include { SHOVILL                 } from './modules/assembly'
 include { QUAST                   } from './modules/assembly'
 include { PROKKA                  } from './modules/annotation'
 include { AMRFINDERPLUS           } from './modules/amr_detection'
@@ -118,13 +119,19 @@ workflow {
     FASTQC_TRIMMED(FASTP.out.reads)
     
     // 4. Genome assembly
-    SPADES(FASTP.out.reads)
+    if (params.assembler == 'shovill') {
+        SHOVILL(FASTP.out.reads)
+        assembly_ch = SHOVILL.out.assembly
+    } else {
+        SPADES(FASTP.out.reads)
+        assembly_ch = SPADES.out.assembly
+    }
     
     // 5. Assembly quality assessment
-    QUAST(SPADES.out.assembly.map { it[1] }.collect())
+    QUAST(assembly_ch.map { it[1] }.collect())
     
     // 6. Genome annotation
-    PROKKA(SPADES.out.assembly)
+    PROKKA(assembly_ch)
     
     // 7. AMR detection
     AMRFINDERPLUS(PROKKA.out.faa)
@@ -134,7 +141,7 @@ workflow {
     
     // 9. MLST typing
     if (!params.skip_mlst) {
-        MLST(SPADES.out.assembly)
+        MLST(assembly_ch)
     }
     
     // 10. Phylogenetic analysis (if reference provided)

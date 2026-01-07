@@ -46,6 +46,15 @@ nextflow run main.nf \
   -profile docker
 ```
 
+**Fast assembly (using Shovill instead of SPAdes):**
+```bash
+nextflow run main.nf \
+  --input my_samples.csv \
+  --outdir results \
+  --assembler shovill \
+  -profile docker
+```
+
 ### STEP 3: Check Results
 
 ```bash

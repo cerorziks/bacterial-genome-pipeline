@@ -144,6 +144,7 @@ nextflow run main.nf \
 | `--vfdb` | null | Path to VFDB database (auto-downloaded if not provided) |
 | `--skip_phylogeny` | false | Skip phylogenetic analysis |
 | `--skip_mlst` | false | Skip MLST typing |
+| `--assembler` | 'spades' | Assembler to use ('spades' or 'shovill') |
 | `--fastp_qualified_quality_phred` | 20 | Minimum quality score for fastp filtering |
 | `--fastp_min_length` | 50 | Minimum read length after trimming |
 | `--spades_kmers` | auto | K-mer sizes for SPAdes assembly |
