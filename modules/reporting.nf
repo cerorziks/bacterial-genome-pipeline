@@ -12,7 +12,7 @@ process MULTIQC {
     
     output:
     path("multiqc_report.html"), emit: html
-    path("multiqc_data"), emit: data
+    path("*_data"), emit: data
     
     script:
     """
