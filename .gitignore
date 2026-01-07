@@ -26,8 +26,12 @@ venv/
 # Databases (downloaded)
 VFDB_setB_pro.fas*
 
-# Test data
+# Test data and results
 test_data/
+test_results/
+test_samplesheet.csv
+my_samples.csv
+bacteria_samples.csv
 
 # IDE
 .vscode/
