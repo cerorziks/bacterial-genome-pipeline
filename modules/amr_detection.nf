@@ -22,12 +22,24 @@ process AMRFINDERPLUS {
     amrfinder_update -d amr_db
     
     # Run AMRFinderPlus using the local database
-    amrfinder \\
-        --protein ${protein_fasta} \\
-        --threads $task.cpus \\
-        --database amr_db/latest \\
-        --output ${sample}_amr.tsv \\
-        --plus
+    # Handle the case where 'latest' symlink might not be created
+    DB_PATH="amr_db/latest"
+    if [ ! -d "\$DB_PATH" ]; then
+        # Fallback: Find the actual dated directory
+        DB_PATH=\$(ls -d amr_db/2* 2>/dev/null | head -n 1)
+    fi
+
+    if [ -n "\$DB_PATH" ] && [ -d "\$DB_PATH" ]; then
+        amrfinder \\
+            --protein ${protein_fasta} \\
+            --threads $task.cpus \\
+            --database \$DB_PATH \\
+            --output ${sample}_amr.tsv \\
+            --plus
+    else
+        echo "Error: No valid AMR database found in amr_db/"
+        exit 1
+    fi
     
     # Create summary
     if [ -s ${sample}_amr.tsv ]; then
