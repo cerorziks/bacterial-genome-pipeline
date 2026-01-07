@@ -27,7 +27,7 @@ graph TD
     C --> E{Assembly Selection}
     
     E -- Default --> E1[SPAdes Assembly]
-    E -- --assembler shovill --> E2[Shovill Assembly]
+    E -- "--assembler shovill" --> E2[Shovill Assembly]
     
     E1 --> F[Assembly Results]
     E2 --> F
