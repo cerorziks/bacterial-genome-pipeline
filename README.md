@@ -182,12 +182,6 @@ nextflow run main.nf \
 | `--spades_kmers` | auto | K-mer sizes for SPAdes assembly |
 | `--multiqc_title` | 'Bacterial Genome Analysis Report' | Title for MultiQC report |
 
-### Resource Limits
-| Parameter | Default |
-|-----------|---------|
-| `--max_cpus` | 16 |
-| `--max_memory` | 128.GB |
-| `--max_time` | 240.h |
 
 ## Output Structure
 
