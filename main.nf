@@ -193,15 +193,12 @@ workflow {
         tree_report_ch
     )
 
-    // 13. MultiQC reporting
+    // 12. MultiQC reporting (Preprocessing QC only)
     multiqc_files = Channel.empty()
         .mix(FASTQC_RAW.out.zip.map{it[1]}.collect().ifEmpty([]))
         .mix(FASTQC_TRIMMED.out.zip.map{it[1]}.collect().ifEmpty([]))
         .mix(FASTP.out.json.map{it[1]}.collect().ifEmpty([]))
-        .mix(QUAST.out.results.ifEmpty([]))
-        .mix(PROKKA.out.txt.map{it[1]}.collect().ifEmpty([]))
         .mix(SEQKIT_STATS.out.stats.map{it[1]}.collect().ifEmpty([]))
-        .mix(SEQKIT_STATS_ASSEMBLY.out.stats.map{it[1]}.collect().ifEmpty([]))
     
     MULTIQC(multiqc_files.collect())
 }

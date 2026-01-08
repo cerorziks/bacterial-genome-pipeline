@@ -47,20 +47,29 @@ graph TD
     M --> N[IQ-TREE Phylogeny]
     M --> P[SNP Distance Matrix]
     
+    B --> MQC[MultiQC Dashboard]
+    D --> MQC
+    C --> MQC
+    S1 --> MQC
+    
     BS[Consolidated Report Generator]
     
-    B --> BS
-    D --> BS
     S1 --> BS
     S2 --> BS
     G --> BS
     J --> BS
     I --> BS
-    H --> BS
     K --> BS
+    N --> BS
     
     BS --> Q[Final HTML Summary]
-    BS --> MQC[MultiQC Dashboard]
+    
+    style Q fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
+    style N fill:#fff9c4,stroke:#f57c00,stroke-width:2px
+    style J fill:#ffccbc,stroke:#d84315,stroke-width:2px
+    style K fill:#f8bbd0,stroke:#c2185b,stroke-width:2px
+    style BS fill:#b2ebf2,stroke:#00acc1,stroke-width:2px
+    style MQC fill:#e1f5fe,stroke:#01579b,stroke-width:2px
     style Q fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
     style N fill:#fff9c4,stroke:#f57c00,stroke-width:2px
     style J fill:#ffccbc,stroke:#d84315,stroke-width:2px
