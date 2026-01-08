@@ -10,21 +10,23 @@ process DOWNLOAD_AMR_DB {
     debug true
     
     output:
-    path "database", emit: db
+    path "latest", emit: db
     
     script:
     """
-    mkdir -p database
-    echo "Starting AMR database download from NCBI..."
+    echo "Starting/Resuming AMR database download from NCBI..."
     echo "Note: This can take 5-10 minutes on slower connections."
     
-    # Run update and pipe output to a log file
-    amrfinder_update -d database > amrfinder_update.log 2>&1 &
+    # Run update directly in the storeDir
+    # We pipe to amrfinder_update.log for our watcher to read
+    amrfinder_update -d . > amrfinder_update.log 2>&1 &
     UPDATE_PID=\$!
     
     # Watcher loop to report percentage and size
+    echo "[Download Progress: 0%] (Connecting to NCBI...)"
     while kill -0 \$UPDATE_PID 2>/dev/null; do
-        SIZE=\$(du -sk database | cut -f1)
+        # Count all files in dated directories
+        SIZE=\$(du -sk 2* 2>/dev/null | cut -f1 | awk '{s+=\$1} END {print s+0}')
         # 450000 KB is the approximate size of the full database
         PERCENT=\$((SIZE * 100 / 450000))
         if [ \$PERCENT -gt 100 ]; then PERCENT=100; fi
@@ -41,7 +43,6 @@ process DOWNLOAD_AMR_DB {
     else
         echo "--------------------------------------------------------"
         echo "ERROR: Database download failed (Exit Code: \$EXIT_CODE)"
-        echo "This is usually due to an unstable internet connection."
         echo "Last lines of the error log:"
         tail -n 15 amrfinder_update.log
         echo "--------------------------------------------------------"

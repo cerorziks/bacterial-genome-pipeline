@@ -178,7 +178,7 @@ workflow {
     // 11. Custom Summary (Bohra-style)
     BOHRA_STYLE_SUMMARY(
         SEQKIT_STATS.out.stats.map{it[1]}.collect().ifEmpty([]),
-        QUAST.out.results.ifEmpty([]),
+        QUAST.out.tsv.ifEmpty([]),
         AMRFINDERPLUS.out.results.map{it[1]}.collect().ifEmpty([]),
         MLST.out.results.map{it[1]}.collect().ifEmpty([])
     )
