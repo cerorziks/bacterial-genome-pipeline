@@ -14,6 +14,7 @@ process COMPILED_HTML_REPORT {
     path(amr_stats)
     path(mlst_stats)
     path(virulence_stats)
+    path(kraken_reports)
     path(tree)
     
     output:
@@ -84,7 +85,25 @@ process COMPILED_HTML_REPORT {
                 if sname not in data: data[sname] = {}
                 data[sname]['vf_count'] = "0"
 
-    # 5. Parse QUAST
+    # 5. Parse Kraken2 for Taxonomy
+    for f in glob.glob("*_kraken2.report"):
+        sname = get_sample_name(f, "_kraken2.report")
+        with open(f) as fh:
+            top_species = "Unknown"
+            top_pct = 0
+            for line in fh:
+                cols = line.strip().split('\\t')
+                if len(cols) >= 6:
+                    rank = cols[3]
+                    pct = float(cols[0])
+                    name = cols[5].strip()
+                    if rank == 'S' and pct > top_pct:
+                        top_pct = pct
+                        top_species = name
+            if sname not in data: data[sname] = {}
+            data[sname]['taxonomy'] = f"{top_species} ({top_pct}%)"
+
+    # 6. Parse QUAST
     if os.path.exists("report.tsv"):
         with open("report.tsv") as fh:
             lines = [l.strip().split('\\t') for l in fh.readlines()]
@@ -192,6 +211,7 @@ process COMPILED_HTML_REPORT {
             }}
             .badge-primary {{ background: #ebf8ff; color: #2b6cb0; }}
             .badge-success {{ background: #f0fff4; color: #276749; }}
+            .badge-info {{ background: #e6fffa; color: #2c7a7b; }}
             .amr-list {{
                 font-size: 0.85em;
                 color: #555;
@@ -228,6 +248,7 @@ process COMPILED_HTML_REPORT {
                     <thead>
                         <tr>
                             <th>Sample ID</th>
+                            <th>Taxonomy (Best Match)</th>
                             <th>Total Reads</th>
                             <th>Yield (Mb)</th>
                             <th>Contigs</th>
@@ -242,6 +263,7 @@ process COMPILED_HTML_REPORT {
         html += f\"\"\"
                         <tr>
                             <td><strong>{sname}</strong></td>
+                            <td><span class=\"badge badge-info\">{data[sname].get('taxonomy', 'Unknown')}</span></td>
                             <td>{data[sname].get('reads', '-')}</td>
                             <td>{data[sname].get('bases', '-')}</td>
                             <td>{data[sname].get('contigs', '-')}</td>

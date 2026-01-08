@@ -9,6 +9,7 @@ A comprehensive Nextflow pipeline for analyzing bacterial genomes from Illumina 
 - **Assembly**: de novo assembly using **SPAdes** (default) or **Shovill** (faster)
 - **Assembly QC**: QUAST quality metrics for assembly assessment
 - **Annotation**: Prokka genome annotation
+- **Taxonomy**: **Kraken2** with 'babykraken' database for rapid species verification
 - **AMR Detection**: AMRFinderPlus with automated database management and persistent storage
 - **Virulence**: BLAST against VFDB for virulence factor detection
 - **MLST**: Multi-locus sequence typing
@@ -195,6 +196,7 @@ results/
 ├── assembly/            # SPAdes/Shovill assemblies
 ├── quast/               # Assembly quality metrics
 ├── annotation/          # Prokka annotations
+├── taxonomy/            # Kraken2 species verification
 ├── amr/                 # AMR resistance genes
 ├── virulence/           # Virulence factors
 ├── mlst/                # MLST typing results

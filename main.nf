@@ -35,6 +35,8 @@ include { IQTREE                  } from './modules/phylogeny'
 include { SNP_DISTS               } from './modules/phylogeny'
 include { SEQKIT_STATS            } from './modules/utils'
 include { SEQKIT_STATS_ASSEMBLY   } from './modules/utils'
+include { KRAKEN2                 } from './modules/taxonomy'
+include { DOWNLOAD_KRAKEN2_DB     } from './modules/taxonomy'
 include { MULTIQC                  } from './modules/reporting'
 include { COMPILED_HTML_REPORT     } from './modules/reporting'
 
@@ -119,6 +121,10 @@ workflow {
     
     // 2. Read trimming and quality filtering
     FASTP(reads_ch)
+
+    // 2.0 Taxonomy verification
+    DOWNLOAD_KRAKEN2_DB()
+    KRAKEN2(FASTP.out.reads, DOWNLOAD_KRAKEN2_DB.out.db)
     
     // 2.1 SeqKit stats on trimmed reads
     SEQKIT_STATS(FASTP.out.reads)
@@ -190,6 +196,7 @@ workflow {
         AMRFINDERPLUS.out.results.map{it[1]}.collect().ifEmpty([]),
         MLST.out.results.map{it[1]}.collect().ifEmpty([]),
         VFDB_BLAST.out.summary.map{it[1]}.collect().ifEmpty([]),
+        KRAKEN2.out.report.map{it[1]}.collect().ifEmpty([]),
         tree_report_ch
     )
 
