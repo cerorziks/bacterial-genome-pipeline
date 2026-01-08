@@ -4,12 +4,27 @@
 ========================================================================================
 */
 
+process DOWNLOAD_AMR_DB {
+    publishDir "${params.outdir}/databases", mode: 'copy'
+    storeDir "${params.amr_db}"
+    
+    output:
+    path "database", emit: db
+    
+    script:
+    """
+    mkdir -p database
+    amrfinder_update -d database
+    """
+}
+
 process AMRFINDERPLUS {
     tag "$sample"
     publishDir "${params.outdir}/amr", mode: 'copy'
     
     input:
     tuple val(sample), path(protein_fasta)
+    path amr_db
     
     output:
     tuple val(sample), path("${sample}_amr.tsv"), emit: results
@@ -17,16 +32,12 @@ process AMRFINDERPLUS {
     
     script:
     """
-    # Create local database directory and update
-    mkdir -p amr_db
-    amrfinder_update -d amr_db
-    
-    # Run AMRFinderPlus using the local database
-    # Handle the case where 'latest' symlink might not be created
-    DB_PATH="amr_db/latest"
+    # Use the provided database path
+    # Handle the case where 'latest' symlink might not be created or is relative
+    DB_PATH="${amr_db}/latest"
     if [ ! -d "\$DB_PATH" ]; then
         # Fallback: Find the actual dated directory
-        DB_PATH=\$(ls -d amr_db/2* 2>/dev/null | head -n 1)
+        DB_PATH=\$(ls -d ${amr_db}/2* 2>/dev/null | head -n 1)
     fi
 
     if [ -n "\$DB_PATH" ] && [ -d "\$DB_PATH" ]; then
@@ -37,7 +48,7 @@ process AMRFINDERPLUS {
             --output ${sample}_amr.tsv \\
             --plus
     else
-        echo "Error: No valid AMR database found in amr_db/"
+        echo "Error: No valid AMR database found in ${amr_db}"
         exit 1
     fi
     

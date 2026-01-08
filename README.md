@@ -149,6 +149,7 @@ nextflow run main.nf \
 |-----------|---------|-------------|
 | `--reference` | null | Reference genome for phylogeny (FASTA) |
 | `--vfdb` | null | Path to VFDB database (auto-downloaded if not provided) |
+| `--amr_db` | './amrfinder_db' | Path to store/load AMRFinder database |
 | `--skip_phylogeny` | false | Skip phylogenetic analysis |
 | `--skip_mlst` | false | Skip MLST typing |
 | `--assembler` | 'spades' | Assembler to use ('spades' or 'shovill') |

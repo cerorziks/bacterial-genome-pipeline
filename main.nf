@@ -24,7 +24,7 @@ include { SPADES                  } from './modules/assembly'
 include { SHOVILL                 } from './modules/assembly'
 include { QUAST                   } from './modules/assembly'
 include { PROKKA                  } from './modules/annotation'
-include { AMRFINDERPLUS           } from './modules/amr_detection'
+include { AMRFINDERPLUS, DOWNLOAD_AMR_DB } from './modules/amr_detection'
 include { VFDB_BLAST              } from './modules/virulence'
 include { MLST                    } from './modules/mlst'
 include { SNIPPY                  } from './modules/phylogeny'
@@ -134,7 +134,8 @@ workflow {
     PROKKA(assembly_ch)
     
     // 7. AMR detection
-    AMRFINDERPLUS(PROKKA.out.faa)
+    DOWNLOAD_AMR_DB()
+    AMRFINDERPLUS(PROKKA.out.faa, DOWNLOAD_AMR_DB.out.db)
     
     // 8. Virulence factor detection
     VFDB_BLAST(PROKKA.out.faa)

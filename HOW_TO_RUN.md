@@ -57,6 +57,9 @@ nextflow run main.nf \
 
 ### STEP 3: Check Results
 
+> [!TIP]
+> **Database Auto-Download**: On the first run, the pipeline will automatically download the AMRFinderPlus database (approx. 400MB) into a folder named `amrfinder_db`. This ensures you have the latest resistance genes. Subsequent runs will use this local folder to save time and bandwidth.
+
 ```bash
 # View the interactive report in your browser
 open results/multiqc/multiqc_report.html
