@@ -190,6 +190,8 @@ workflow {
     )
 
     // 12. Final Consolidated HTML Report (Standalone)
+    tree_report_ch = (params.reference && !params.skip_phylogeny) ? IQTREE.out.tree : Channel.value([])
+    
     COMPILED_HTML_REPORT(
         SEQKIT_STATS.out.stats.map{it[1]}.collect().ifEmpty([]),
         SEQKIT_STATS_ASSEMBLY.out.stats.map{it[1]}.collect().ifEmpty([]),
@@ -197,7 +199,7 @@ workflow {
         AMRFINDERPLUS.out.results.map{it[1]}.collect().ifEmpty([]),
         MLST.out.results.map{it[1]}.collect().ifEmpty([]),
         VFDB_BLAST.out.summary.map{it[1]}.collect().ifEmpty([]),
-        (params.reference && !params.skip_phylogeny) ? IQTREE.out.tree.ifEmpty([]) : Channel.empty()
+        tree_report_ch
     )
 
     // 13. MultiQC reporting
