@@ -36,7 +36,6 @@ include { SNP_DISTS               } from './modules/phylogeny'
 include { SEQKIT_STATS            } from './modules/utils'
 include { SEQKIT_STATS_ASSEMBLY   } from './modules/utils'
 include { MULTIQC                  } from './modules/reporting'
-include { BOHRA_STYLE_SUMMARY      } from './modules/reporting'
 include { COMPILED_HTML_REPORT     } from './modules/reporting'
 
 /*
@@ -181,15 +180,7 @@ workflow {
         SNP_DISTS(SNIPPY_CORE.out.alignment)
     }
     
-    // 11. Custom Summary (Bohra-style for MultiQC)
-    BOHRA_STYLE_SUMMARY(
-        SEQKIT_STATS.out.stats.map{it[1]}.collect().ifEmpty([]),
-        QUAST.out.tsv.ifEmpty([]),
-        AMRFINDERPLUS.out.results.map{it[1]}.collect().ifEmpty([]),
-        MLST.out.results.map{it[1]}.collect().ifEmpty([])
-    )
-
-    // 12. Final Consolidated HTML Report (Standalone)
+    // 11. Final Consolidated HTML Report (Standalone)
     tree_report_ch = (params.reference && !params.skip_phylogeny) ? IQTREE.out.tree : Channel.value([])
     
     COMPILED_HTML_REPORT(
@@ -209,7 +200,6 @@ workflow {
         .mix(FASTP.out.json.map{it[1]}.collect().ifEmpty([]))
         .mix(QUAST.out.results.ifEmpty([]))
         .mix(PROKKA.out.txt.map{it[1]}.collect().ifEmpty([]))
-        .mix(BOHRA_STYLE_SUMMARY.out.tsv.ifEmpty([]))
         .mix(SEQKIT_STATS.out.stats.map{it[1]}.collect().ifEmpty([]))
         .mix(SEQKIT_STATS_ASSEMBLY.out.stats.map{it[1]}.collect().ifEmpty([]))
     

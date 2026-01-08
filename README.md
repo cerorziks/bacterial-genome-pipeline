@@ -13,7 +13,7 @@ A comprehensive Nextflow pipeline for analyzing bacterial genomes from Illumina 
 - **Virulence**: BLAST against VFDB for virulence factor detection
 - **MLST**: Multi-locus sequence typing
 - **Phylogeny**: Core genome SNP-based phylogenetic tree construction
-- **Reporting**: **Bohra/MDU-style** consolidated HTML reports via MultiQC
+- **Reporting**: **Consolidated HTML report** summarizing results from all analysis stages.
 
 ## Pipeline Workflow
 
@@ -47,17 +47,20 @@ graph TD
     M --> N[IQ-TREE Phylogeny]
     M --> P[SNP Distance Matrix]
     
-    B --> BS[Bohra Summary Generator]
+    BS[Consolidated Report Generator]
+    
+    B --> BS
     D --> BS
     S1 --> BS
     S2 --> BS
     G --> BS
     J --> BS
     I --> BS
+    H --> BS
+    K --> BS
     
-    BS --> Q[MultiQC Report]
-    
-    style A fill:#e1f5ff,stroke:#0288d1,stroke-width:2px
+    BS --> Q[Final HTML Summary]
+    BS --> MQC[MultiQC Dashboard]
     style Q fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
     style N fill:#fff9c4,stroke:#f57c00,stroke-width:2px
     style J fill:#ffccbc,stroke:#d84315,stroke-width:2px
@@ -191,7 +194,8 @@ results/
 │   ├── core.aln         # Core genome alignment
 │   ├── core.aln.treefile # Phylogenetic tree (Newick format)
 │   └── snp_distances.tsv # Pairwise SNP distances
-├── multiqc/             # Consolidated MDU-style report
+├── multiqc/             # MultiQC dashboard (all technical reports)
+├── final_report/        # Consolidated standalone summary report (HTML)
 └── pipeline_info/       # Pipeline execution reports
 ```
 
