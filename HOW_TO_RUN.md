@@ -59,6 +59,9 @@ nextflow run main.nf \
 
 > [!TIP]
 > **Database Auto-Download**: On the first run, the pipeline will automatically download the AMRFinderPlus database (approx. 400MB) into a folder named `amrfinder_db`. This ensures you have the latest resistance genes. Subsequent runs will use this local folder to save time and bandwidth.
+> 
+> **Monitoring Progress**: To see the download percentage in real-time, open a new terminal and run:
+> `tail -f work/*/*/.command.out | grep "Progress"`
 
 ```bash
 # View the interactive report in your browser

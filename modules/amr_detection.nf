@@ -14,7 +14,25 @@ process DOWNLOAD_AMR_DB {
     script:
     """
     mkdir -p database
-    amrfinder_update -d database
+    echo "Starting AMR database download..."
+    
+    # Run update in background and capture PID
+    amrfinder_update -d database > amrfinder_update.log 2>&1 &
+    UPDATE_PID=\$!
+    
+    # Watcher loop to report percentage
+    while kill -0 \$UPDATE_PID 2>/dev/null; do
+        SIZE=\$(du -sk database | cut -f1)
+        # 450000 KB is the approximate size of the full database
+        PERCENT=\$((SIZE * 100 / 450000))
+        if [ \$PERCENT -gt 100 ]; then PERCENT=100; fi
+        
+        echo "[Download Progress: \$PERCENT%]"
+        sleep 5
+    done
+    
+    wait \$UPDATE_PID
+    echo "Download completed successfully."
     """
 }
 
