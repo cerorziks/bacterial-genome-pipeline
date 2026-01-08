@@ -1,4 +1,4 @@
-# 🚀 HOW TO RUN THE PIPELINE
+# HOW TO RUN THE PIPELINE
 
 ## Prerequisites
 Before running, ensure you have the following installed:
