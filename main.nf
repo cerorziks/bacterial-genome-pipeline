@@ -37,6 +37,7 @@ include { SEQKIT_STATS            } from './modules/utils'
 include { SEQKIT_STATS_ASSEMBLY   } from './modules/utils'
 include { MULTIQC                  } from './modules/reporting'
 include { BOHRA_STYLE_SUMMARY      } from './modules/reporting'
+include { COMPILED_HTML_REPORT     } from './modules/reporting'
 
 /*
 ========================================================================================
@@ -180,7 +181,7 @@ workflow {
         SNP_DISTS(SNIPPY_CORE.out.alignment)
     }
     
-    // 11. Custom Summary (Bohra-style)
+    // 11. Custom Summary (Bohra-style for MultiQC)
     BOHRA_STYLE_SUMMARY(
         SEQKIT_STATS.out.stats.map{it[1]}.collect().ifEmpty([]),
         QUAST.out.tsv.ifEmpty([]),
@@ -188,7 +189,18 @@ workflow {
         MLST.out.results.map{it[1]}.collect().ifEmpty([])
     )
 
-    // 12. MultiQC reporting
+    // 12. Final Consolidated HTML Report (Standalone)
+    COMPILED_HTML_REPORT(
+        SEQKIT_STATS.out.stats.map{it[1]}.collect().ifEmpty([]),
+        SEQKIT_STATS_ASSEMBLY.out.stats.map{it[1]}.collect().ifEmpty([]),
+        QUAST.out.tsv.ifEmpty([]),
+        AMRFINDERPLUS.out.results.map{it[1]}.collect().ifEmpty([]),
+        MLST.out.results.map{it[1]}.collect().ifEmpty([]),
+        VFDB_BLAST.out.summary.map{it[1]}.collect().ifEmpty([]),
+        (params.reference && !params.skip_phylogeny) ? IQTREE.out.tree.ifEmpty([]) : Channel.empty()
+    )
+
+    // 13. MultiQC reporting
     multiqc_files = Channel.empty()
         .mix(FASTQC_RAW.out.zip.map{it[1]}.collect().ifEmpty([]))
         .mix(FASTQC_TRIMMED.out.zip.map{it[1]}.collect().ifEmpty([]))

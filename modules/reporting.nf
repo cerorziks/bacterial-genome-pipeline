@@ -109,6 +109,314 @@ process BOHRA_STYLE_SUMMARY {
     """
 }
 
+process COMPILED_HTML_REPORT {
+    publishDir "${params.outdir}/final_report", mode: 'copy'
+    
+    input:
+    path(seqkit_stats)
+    path(seqkit_assembly_stats)
+    path(quast_stats)
+    path(amr_stats)
+    path(mlst_stats)
+    path(virulence_stats)
+    path(tree)
+    
+    output:
+    path("summary_report.html"), emit: html
+    
+    script:
+    """
+    #!/usr/bin/env python3
+    import os
+    import glob
+    import datetime
+
+    # Data dictionaries to store metrics by sample name
+    data = {}
+
+    def get_sample_name(filename, suffix):
+        name = os.path.basename(filename)
+        if name.endswith(suffix):
+            return name[:-len(suffix)]
+        return name
+
+    # 1. Parse SeqKit for Raw Reads
+    for f in glob.glob("*_stats.txt"):
+        if "_assembly_stats.txt" in f: continue
+        sname = get_sample_name(f, "_stats.txt")
+        with open(f) as fh:
+            lines = fh.readlines()
+            if len(lines) > 1:
+                cols = lines[1].split('\\t')
+                if sname not in data: data[sname] = {}
+                data[sname]['reads'] = "{:,}".format(int(cols[3]))
+                data[sname]['bases'] = "{:.1f}".format(int(cols[4])/1000000)
+
+    # 2. Parse MLST for ST
+    for f in glob.glob("*_mlst.tsv"):
+        sname = get_sample_name(f, "_mlst.tsv")
+        with open(f) as fh:
+            line = fh.readline().strip()
+            if line:
+                cols = line.split('\\t')
+                if sname not in data: data[sname] = {}
+                data[sname]['st'] = cols[2] if len(cols) > 2 else "-"
+                data[sname]['scheme'] = cols[1] if len(cols) > 1 else "-"
+
+    # 3. Parse AMR for Gene Count and List
+    for f in glob.glob("*_amr.tsv"):
+        sname = get_sample_name(f, "_amr.tsv")
+        with open(f) as fh:
+            lines = fh.readlines()
+            genes = []
+            for l in lines[1:]:
+                c = l.split('\\t')
+                if len(c) > 5: genes.append(c[5])
+            if sname not in data: data[sname] = {}
+            data[sname]['amr_count'] = len(genes)
+            data[sname]['amr_list'] = ", ".join(sorted(set(genes))) if genes else "None"
+
+    # 4. Parse Virulence
+    for f in glob.glob("*_virulence_summary.txt"):
+        sname = get_sample_name(f, "_virulence_summary.txt")
+        with open(f) as fh:
+            content = fh.read()
+            if "Total virulence factors" in content:
+                count = content.split("Total virulence factors")[-1].split(":")[-1].strip()
+                if sname not in data: data[sname] = {}
+                data[sname]['vf_count'] = count
+            else:
+                if sname not in data: data[sname] = {}
+                data[sname]['vf_count'] = "0"
+
+    # 5. Parse QUAST
+    if os.path.exists("report.tsv"):
+        with open("report.tsv") as fh:
+            lines = [l.strip().split('\\t') for l in fh.readlines()]
+            if len(lines) > 0:
+                header = lines[0]
+                for i in range(1, len(header)):
+                    qname = header[i]
+                    target = qname
+                    if target not in data:
+                        for dname in data.keys():
+                            if qname.startswith(dname) or dname.startswith(qname):
+                                target = dname
+                                break
+                    if target not in data: data[target] = {}
+                    for row in lines:
+                        if row[0] == "N50": data[target]['n50'] = "{:,}".format(int(row[i]))
+                        if row[0] == "Total length": data[target]['gsize'] = "{:.2f}".format(int(row[i])/1000000)
+                        if row[0] == "# contigs (>= 0 bp)": data[target]['contigs'] = row[i]
+
+    # Generate HTML
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    
+    html = f\"\"\"
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Bacterial Genome Analysis Summary</title>
+        <style>
+            :root {{
+                --primary: #2c3e50;
+                --secondary: #34495e;
+                --accent: #3498db;
+                --success: #27ae60;
+                --bg: #f4f7f6;
+                --text: #333;
+                --white: #ffffff;
+            }}
+            body {{
+                font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                background-color: var(--bg);
+                color: var(--text);
+                margin: 0;
+                padding: 20px;
+                line-height: 1.6;
+            }}
+            .container {{
+                max-width: 1200px;
+                margin: 0 auto;
+                background: var(--white);
+                padding: 40px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                border-radius: 8px;
+            }}
+            h1 {{
+                color: var(--primary);
+                border-bottom: 3px solid var(--accent);
+                padding-bottom: 10px;
+                margin-top: 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }}
+            .timestamp {{
+                font-size: 0.4em;
+                color: #777;
+                font-weight: normal;
+            }}
+            h2 {{
+                color: var(--secondary);
+                background: #edf2f7;
+                padding: 10px 15px;
+                border-radius: 4px;
+                margin-top: 30px;
+            }}
+            table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 20px;
+                table-layout: auto;
+            }}
+            th, td {{
+                padding: 12px 15px;
+                text-align: left;
+                border-bottom: 1px solid #ddd;
+            }}
+            th {{
+                background-color: var(--primary);
+                color: var(--white);
+                font-weight: 600;
+                text-transform: uppercase;
+                font-size: 0.85em;
+                letter-spacing: 1px;
+            }}
+            tr:hover {{
+                background-color: #f9f9f9;
+            }}
+            .badge {{
+                display: inline-block;
+                padding: 2px 8px;
+                border-radius: 12px;
+                font-size: 0.85em;
+                font-weight: 600;
+            }}
+            .badge-primary {{ background: #ebf8ff; color: #2b6cb0; }}
+            .badge-success {{ background: #f0fff4; color: #276749; }}
+            .amr-list {{
+                font-size: 0.85em;
+                color: #555;
+                font-style: italic;
+                max-width: 300px;
+                word-wrap: break-word;
+            }}
+            footer {{
+                margin-top: 50px;
+                text-align: center;
+                font-size: 0.9em;
+                color: #999;
+            }}
+            .tree-section {{
+                padding: 20px;
+                background: #f8fafc;
+                border: 1px dashed #cbd5e0;
+                border-radius: 4px;
+                text-align: center;
+                color: #718096;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>
+                Bacterial Genome Analysis Summary
+                <span class="timestamp">Generated on: {now}</span>
+            </h1>
+
+            <section>
+                <h2>1. Sequencing and Assembly Statistics</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sample ID</th>
+                            <th>Total Reads</th>
+                            <th>Yield (Mb)</th>
+                            <th>Contigs</th>
+                            <th>N50 (bp)</th>
+                            <th>Genome Size (Mb)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    \"\"\"
+
+    for sname in sorted(data.keys()):
+        html += f\"\"\"
+                        <tr>
+                            <td><strong>{sname}</strong></td>
+                            <td>{data[sname].get('reads', '-')}</td>
+                            <td>{data[sname].get('bases', '-')}</td>
+                            <td>{data[sname].get('contigs', '-')}</td>
+                            <td>{data[sname].get('n50', '-')}</td>
+                            <td>{data[sname].get('gsize', '-')}</td>
+                        </tr>
+        \"\"\"
+
+    html += \"\"\"
+                    </tbody>
+                </table>
+            </section>
+
+            <section>
+                <h2>2. MLST, AMR & Virulence Profiles</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sample ID</th>
+                            <th>MLST / ST</th>
+                            <th>AMR Genes</th>
+                            <th>Virulence Factors</th>
+                            <th>Resistome Profile</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    \"\"\"
+
+    for sname in sorted(data.keys()):
+        st = f"{data[sname].get('scheme', '-')}: {data[sname].get('st', '-')}" if data[sname].get('st') else "-"
+        html += f\"\"\"
+                        <tr>
+                            <td><strong>{sname}</strong></td>
+                            <td><span class=\"badge badge-primary\">{st}</span></td>
+                            <td><span class=\"badge badge-success\">{data[sname].get('amr_count', '0')}</span></td>
+                            <td>{data[sname].get('vf_count', '0')}</td>
+                            <td class=\"amr-list\">{data[sname].get('amr_list', 'None')}</td>
+                        </tr>
+        \"\"\"
+
+    html += \"\"\"
+                    </tbody>
+                </table>
+            </section>
+    \"\"\"
+
+    if os.path.exists("*.treefile") or glob.glob("*.treefile"):
+        html += \"\"\"
+            <section>
+                <h2>3. Phylogenetic Analysis</h2>
+                <div class=\"tree-section\">
+                    <p>Phylogenetic tree generation completed. See results directory for NEWICK files (.treefile).</p>
+                </div>
+            </section>
+        \"\"\"
+
+    html += f\"\"\"
+            <footer>
+                Generated by Bacterial Genome Analysis Pipeline v1.0.0
+            </footer>
+        </div>
+    </body>
+    </html>
+    \"\"\"
+
+    with open('summary_report.html', 'w') as f:
+        f.write(html)
+    """
+}
+
 process MULTIQC {
     publishDir "${params.outdir}/multiqc", mode: 'copy'
     
