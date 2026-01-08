@@ -139,7 +139,10 @@ workflow {
     SEQKIT_STATS_ASSEMBLY(assembly_ch)
     
     // 5. Assembly quality assessment
-    QUAST(assembly_ch.map { it[1] }.collect())
+    QUAST(
+        assembly_ch.map { it[1] }.collect(),
+        assembly_ch.map { it[0] }.collect()
+    )
     
     // 6. Genome annotation
     PROKKA(assembly_ch)

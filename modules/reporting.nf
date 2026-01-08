@@ -32,7 +32,6 @@ process BOHRA_STYLE_SUMMARY {
         return name
 
     # 1. Parse SeqKit for Reads and Bases
-    # Files: ecoli_test_stats.txt
     for f in glob.glob("*_stats.txt"):
         sname = get_sample_name(f, "_stats.txt")
         with open(f) as fh:
@@ -40,12 +39,10 @@ process BOHRA_STYLE_SUMMARY {
             if len(lines) > 1:
                 cols = lines[1].split('\\t')
                 if sname not in data: data[sname] = {}
-                # Convert bases to Mb
                 data[sname]['reads'] = "{:,}".format(int(cols[3]))
                 data[sname]['bases'] = "{:.1f}".format(int(cols[4])/1000000)
 
     # 2. Parse MLST for ST
-    # Files: ecoli_test_mlst.tsv
     for f in glob.glob("*_mlst.tsv"):
         sname = get_sample_name(f, "_mlst.tsv")
         with open(f) as fh:
@@ -56,7 +53,6 @@ process BOHRA_STYLE_SUMMARY {
                 data[sname]['st'] = cols[2] if len(cols) > 2 else "-"
 
     # 3. Parse AMR for Gene Count
-    # Files: ecoli_test_amr.tsv
     for f in glob.glob("*_amr.tsv"):
         sname = get_sample_name(f, "_amr.tsv")
         with open(f) as fh:
@@ -66,20 +62,27 @@ process BOHRA_STYLE_SUMMARY {
             data[sname]['amr'] = str(count)
 
     # 4. Parse QUAST for N50 and Genome Size
-    # QUAST output is typically 'report.tsv'
-    # Columns: Statistics, Sample1, Sample2...
     if os.path.exists("report.tsv"):
         with open("report.tsv") as fh:
             lines = [l.strip().split('\\t') for l in fh.readlines()]
             if len(lines) > 0:
                 header = lines[0]
                 for i in range(1, len(header)):
-                    # QUAST sample names might have suffixes, but typically match the input
-                    sname = header[i]
-                    if sname not in data: data[sname] = {}
+                    # Match by finding the closest sample name in data
+                    qname = header[i]
+                    # Direct match first
+                    target = qname
+                    if target not in data:
+                        # Try to find a match that is a prefix
+                        for dname in data.keys():
+                            if qname.startswith(dname) or dname.startswith(qname):
+                                target = dname
+                                break
+                    
+                    if target not in data: data[target] = {}
                     for row in lines:
-                        if row[0] == "N50": data[sname]['n50'] = "{:,}".format(int(row[i]))
-                        if row[0] == "Total length": data[sname]['gsize'] = "{:.2f}".format(int(row[i])/1000000)
+                        if row[0] == "N50": data[target]['n50'] = "{:,}".format(int(row[i]))
+                        if row[0] == "Total length": data[target]['gsize'] = "{:.2f}".format(int(row[i])/1000000)
 
     # Write the MultiQC TSV
     with open('summary_mqc.tsv', 'w') as f:

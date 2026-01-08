@@ -61,6 +61,7 @@ process QUAST {
     
     input:
     path(assemblies)
+    val(labels)
     
     output:
     path("quast_results"), emit: results
@@ -68,9 +69,11 @@ process QUAST {
     path("quast_results/report.tsv"), emit: tsv
     
     script:
+    def labels_str = labels ? "--labels '${labels.join(',')}'" : ""
     """
     quast.py \\
         ${assemblies} \\
+        ${labels_str} \\
         -o quast_results \\
         --threads $task.cpus \\
         --min-contig 500
