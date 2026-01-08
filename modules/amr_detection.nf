@@ -66,11 +66,19 @@ process AMRFINDERPLUS {
     script:
     """
     # Use the provided database path
-    # Handle the case where 'latest' symlink might not be created or is relative
-    DB_PATH="${amr_db}/latest"
-    if [ ! -d "\$DB_PATH" ]; then
-        # Fallback: Find the actual dated directory
+    # We check if the input is the base directory or the actual DB directory
+    if [ -d "${amr_db}/latest" ]; then
+        DB_PATH="${amr_db}/latest"
+    elif [ -f "${amr_db}/AMR.LIB" ]; then
+        # The input itself is the database directory
+        DB_PATH="${amr_db}"
+    else
+        # Fallback to current directory if it's staged as a flat list, 
+        # or look for dated directories
         DB_PATH=\$(ls -d ${amr_db}/2* 2>/dev/null | head -n 1)
+        if [ -z "\$DB_PATH" ]; then
+            DB_PATH="${amr_db}"
+        fi
     fi
 
     if [ -n "\$DB_PATH" ] && [ -d "\$DB_PATH" ]; then
@@ -81,7 +89,9 @@ process AMRFINDERPLUS {
             --output ${sample}_amr.tsv \\
             --plus
     else
-        echo "Error: No valid AMR database found in ${amr_db}"
+        echo "Error: No valid AMR database found for ${amr_db}"
+        echo "Current directory contents:"
+        ls -F
         exit 1
     fi
     
