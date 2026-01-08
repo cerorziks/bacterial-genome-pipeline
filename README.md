@@ -264,17 +264,17 @@ nextflow run main.nf --input samples.csv --outdir results -resume
 
 If you use this pipeline, please cite the tools:
 
-- **Nextflow**: Di Tommaso et al. (2017) Nature Biotechnology
-- **FastQC**: Andrews S. (2010) Babraham Bioinformatics
-- **fastp**: Chen et al. (2018) Bioinformatics
-- **SPAdes**: Bankevich et al. (2012) Journal of Computational Biology
-- **Prokka**: Seemann (2014) Bioinformatics
-- **AMRFinderPlus**: Feldgarden et al. (2021) Scientific Reports
-- **VFDB**: Chen et al. (2005) Nucleic Acids Research
-- **mlst**: Seemann T. (GitHub: tseemann/mlst)
-- **Snippy**: Seemann T. (GitHub: tseemann/snippy)
-- **IQ-TREE**: Nguyen et al. (2015) Molecular Biology and Evolution
-- **MultiQC**: Ewels et al. (2016) Bioinformatics
+- **Nextflow**: Di Tommaso et al. (2017) Nature Biotechnology ([GitHub](https://github.com/nextflow-io/nextflow))
+- **FastQC**: Andrews S. (2010) Babraham Bioinformatics ([GitHub](https://github.com/s-andrews/FastQC))
+- **fastp**: Chen et al. (2018) Bioinformatics ([GitHub](https://github.com/OpenGene/fastp))
+- **SPAdes**: Bankevich et al. (2012) Journal of Computational Biology ([GitHub](https://github.com/ablab/spades))
+- **Prokka**: Seemann (2014) Bioinformatics ([GitHub](https://github.com/tseemann/prokka))
+- **AMRFinderPlus**: Feldgarden et al. (2021) Scientific Reports ([GitHub](https://github.com/ncbi/amr))
+- **VFDB**: Chen et al. (2005) Nucleic Acids Research ([Home](http://www.mgc.ac.cn/VFs/))
+- **mlst**: Seemann T. ([GitHub: tseemann/mlst](https://github.com/tseemann/mlst))
+- **Snippy**: Seemann T. ([GitHub: tseemann/snippy](https://github.com/tseemann/snippy))
+- **IQ-TREE**: Nguyen et al. (2015) Molecular Biology and Evolution ([GitHub](https://github.com/iqtree/iqtree2))
+- **MultiQC**: Ewels et al. (2016) Bioinformatics ([GitHub](https://github.com/MultiQC/MultiQC))
 
 ## License
 
