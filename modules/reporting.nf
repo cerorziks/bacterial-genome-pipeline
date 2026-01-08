@@ -229,6 +229,15 @@ process COMPILED_HTML_REPORT {
                 max-width: 300px;
                 word-wrap: break-word;
             }}
+            .tech-note {{
+                font-size: 0.8em;
+                color: #718096;
+                background: #fdf2f2;
+                padding: 10px;
+                border-left: 4px solid #feb2b2;
+                margin-bottom: 20px;
+                border-radius: 0 4px 4px 0;
+            }}
             footer {{
                 margin-top: 50px;
                 text-align: center;
@@ -247,6 +256,11 @@ process COMPILED_HTML_REPORT {
                 border-radius: 8px;
                 border: 1px solid #e2e8f0;
                 text-align: center;
+                transition: transform 0.2s;
+            }}
+            .metric:hover {{
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             }}
             .metric-val {{
                 font-size: 1.5em;
@@ -258,6 +272,7 @@ process COMPILED_HTML_REPORT {
                 font-size: 0.8em;
                 color: #64748b;
                 text-transform: uppercase;
+                letter-spacing: 0.5px;
             }}
             .tree-section {{
                 padding: 20px;
@@ -275,6 +290,10 @@ process COMPILED_HTML_REPORT {
                 Bacterial Genome Analysis Summary
                 <span class="timestamp">Generated on: {now}</span>
             </h1>
+
+            <div class="tech-note">
+                <strong>Note:</strong> Taxonomic verification performed using the MDU-PHL BabyKraken database (10MB). Results are optimized for common public health pathogens; low percentages or "Unknown" may occur for rare species.
+            </div>
     \"\"\"
 
     if pan_data:
