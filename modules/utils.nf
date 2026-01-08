@@ -9,14 +9,14 @@ process SEQKIT_STATS {
     publishDir "${params.outdir}/seqkit", mode: 'copy'
     
     input:
-    tuple val(sample), path(reads)
+    tuple val(sample), path(read1), path(read2)
     
     output:
     tuple val(sample), path("${sample}_stats.txt"), emit: stats
     
     script:
     """
-    seqkit stats ${reads} -T -a > ${sample}_stats.txt
+    seqkit stats ${read1} ${read2} -T -a > ${sample}_stats.txt
     """
 }
 
