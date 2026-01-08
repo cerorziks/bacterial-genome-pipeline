@@ -7,6 +7,7 @@
 process DOWNLOAD_AMR_DB {
     publishDir "${params.outdir}/databases", mode: 'copy'
     storeDir "${params.amr_db}"
+    debug true
     
     output:
     path "database", emit: db
