@@ -32,7 +32,9 @@ include { SNIPPY                  } from './modules/phylogeny'
 include { SNIPPY_CORE             } from './modules/phylogeny'
 include { IQTREE                  } from './modules/phylogeny'
 include { SNP_DISTS               } from './modules/phylogeny'
-include { MULTIQC                 } from './modules/reporting'
+include { SEQKIT_STATS            } from './modules/utils'
+include { SEQKIT_STATS_ASSEMBLY   } from './modules/utils'
+include { MULTIQC, BOHRA_STYLE_SUMMARY } from './modules/reporting'
 
 /*
 ========================================================================================
@@ -116,6 +118,9 @@ workflow {
     // 2. Read trimming and quality filtering
     FASTP(reads_ch)
     
+    // 2.1 SeqKit stats on trimmed reads
+    SEQKIT_STATS(FASTP.out.reads)
+    
     // 3. Quality Control - Trimmed reads
     FASTQC_TRIMMED(FASTP.out.reads)
     
@@ -127,6 +132,9 @@ workflow {
         SPADES(FASTP.out.reads)
         assembly_ch = SPADES.out.assembly
     }
+    
+    // 4.1 SeqKit stats on assembly
+    SEQKIT_STATS_ASSEMBLY(assembly_ch)
     
     // 5. Assembly quality assessment
     QUAST(assembly_ch.map { it[1] }.collect())
@@ -166,13 +174,24 @@ workflow {
         SNP_DISTS(SNIPPY_CORE.out.alignment)
     }
     
-    // 11. MultiQC reporting
+    // 11. Custom Summary (Bohra-style)
+    BOHRA_STYLE_SUMMARY(
+        SEQKIT_STATS.out.stats.map{it[1]}.collect().ifEmpty([]),
+        QUAST.out.results.ifEmpty([]),
+        AMRFINDERPLUS.out.results.map{it[1]}.collect().ifEmpty([]),
+        MLST.out.results.map{it[1]}.collect().ifEmpty([])
+    )
+
+    // 12. MultiQC reporting
     multiqc_files = Channel.empty()
         .mix(FASTQC_RAW.out.zip.map{it[1]}.collect().ifEmpty([]))
         .mix(FASTQC_TRIMMED.out.zip.map{it[1]}.collect().ifEmpty([]))
         .mix(FASTP.out.json.map{it[1]}.collect().ifEmpty([]))
         .mix(QUAST.out.results.ifEmpty([]))
         .mix(PROKKA.out.txt.map{it[1]}.collect().ifEmpty([]))
+        .mix(BOHRA_STYLE_SUMMARY.out.tsv.ifEmpty([]))
+        .mix(SEQKIT_STATS.out.stats.map{it[1]}.collect().ifEmpty([]))
+        .mix(SEQKIT_STATS_ASSEMBLY.out.stats.map{it[1]}.collect().ifEmpty([]))
     
     MULTIQC(multiqc_files.collect())
 }

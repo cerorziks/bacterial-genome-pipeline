@@ -5,14 +5,15 @@ A comprehensive Nextflow pipeline for analyzing bacterial genomes from Illumina 
 ## Features
 
 - **Quality Control**: FastQC and fastp for read quality assessment and trimming
+- **Statistics**: **SeqKit** for rapid read and assembly metrics
 - **Assembly**: de novo assembly using **SPAdes** (default) or **Shovill** (faster)
 - **Assembly QC**: QUAST quality metrics for assembly assessment
 - **Annotation**: Prokka genome annotation
-- **AMR Detection**: AMRFinderPlus for antimicrobial resistance gene identification
+- **AMR Detection**: AMRFinderPlus with automated database management and persistent storage
 - **Virulence**: BLAST against VFDB for virulence factor detection
 - **MLST**: Multi-locus sequence typing
 - **Phylogeny**: Core genome SNP-based phylogenetic tree construction
-- **Reporting**: MultiQC consolidated reports
+- **Reporting**: **Bohra/MDU-style** consolidated HTML reports via MultiQC
 
 ## Pipeline Workflow
 
@@ -24,6 +25,7 @@ graph TD
     A --> C[fastp Trimming & QC]
     
     C --> D[FastQC - Trimmed Reads]
+    C --> S1[SeqKit Read Stats]
     C --> E{Assembly Selection}
     
     E -- Default --> E1[SPAdes Assembly]
@@ -32,6 +34,7 @@ graph TD
     E1 --> F[Assembly Results]
     E2 --> F
     
+    F --> S2[SeqKit Assembly Stats]
     F --> G[QUAST Assembly QC]
     F --> H[Prokka Annotation]
     F --> I[MLST Typing]
@@ -44,17 +47,22 @@ graph TD
     M --> N[IQ-TREE Phylogeny]
     M --> P[SNP Distance Matrix]
     
-    B --> Q[MultiQC Report]
-    D --> Q
-    G --> Q
-    J --> Q
-    K --> Q
+    B --> BS[Bohra Summary Generator]
+    D --> BS
+    S1 --> BS
+    S2 --> BS
+    G --> BS
+    J --> BS
+    I --> BS
+    
+    BS --> Q[MultiQC Report]
     
     style A fill:#e1f5ff,stroke:#0288d1,stroke-width:2px
     style Q fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
     style N fill:#fff9c4,stroke:#f57c00,stroke-width:2px
     style J fill:#ffccbc,stroke:#d84315,stroke-width:2px
     style K fill:#f8bbd0,stroke:#c2185b,stroke-width:2px
+    style BS fill:#b2ebf2,stroke:#00acc1,stroke-width:2px
 ```
 
 **Legend:**
@@ -171,7 +179,8 @@ nextflow run main.nf \
 results/
 ├── fastqc/              # FastQC reports (raw and trimmed)
 ├── fastp/               # fastp trimming reports
-├── assembly/            # SPAdes assemblies
+├── seqkit/              # Read and assembly statistics
+├── assembly/            # SPAdes/Shovill assemblies
 ├── quast/               # Assembly quality metrics
 ├── annotation/          # Prokka annotations
 ├── amr/                 # AMR resistance genes
@@ -182,7 +191,7 @@ results/
 │   ├── core.aln         # Core genome alignment
 │   ├── core.aln.treefile # Phylogenetic tree (Newick format)
 │   └── snp_distances.tsv # Pairwise SNP distances
-├── multiqc/             # Consolidated QC report
+├── multiqc/             # Consolidated MDU-style report
 └── pipeline_info/       # Pipeline execution reports
 ```
 
