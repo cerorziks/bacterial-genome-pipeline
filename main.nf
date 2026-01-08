@@ -34,7 +34,8 @@ include { IQTREE                  } from './modules/phylogeny'
 include { SNP_DISTS               } from './modules/phylogeny'
 include { SEQKIT_STATS            } from './modules/utils'
 include { SEQKIT_STATS_ASSEMBLY   } from './modules/utils'
-include { MULTIQC, BOHRA_STYLE_SUMMARY } from './modules/reporting'
+include { MULTIQC                  } from './modules/reporting'
+include { BOHRA_STYLE_SUMMARY      } from './modules/reporting'
 
 /*
 ========================================================================================
