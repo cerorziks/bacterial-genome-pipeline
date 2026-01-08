@@ -22,12 +22,14 @@ A comprehensive Nextflow pipeline for analyzing bacterial genomes from Illumina 
 The pipeline processes bacterial genome data through the following stages:
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '18px', 'fontFamily': 'arial'}}}%%
 graph TD
     A[Paired-End FASTQ Files] --> B[FastQC - Raw Reads]
     A --> C[fastp Trimming & QC]
     
     C --> D[FastQC - Trimmed Reads]
     C --> S1[SeqKit Read Stats]
+    C --> KR[Kraken2 Taxonomy]
     C --> E{Assembly Selection}
     
     E -- Default --> E1[SPAdes Assembly]
@@ -66,6 +68,7 @@ graph TD
     K --> BS
     N --> BS
     PAN --> BS
+    KR --> BS
     
     BS --> Q[Final HTML Summary]
     
@@ -73,13 +76,9 @@ graph TD
     style N fill:#fff9c4,stroke:#f57c00,stroke-width:2px
     style J fill:#ffccbc,stroke:#d84315,stroke-width:2px
     style K fill:#f8bbd0,stroke:#c2185b,stroke-width:2px
+    style KR fill:#e1bee7,stroke:#8e24aa,stroke-width:2px
     style BS fill:#b2ebf2,stroke:#00acc1,stroke-width:2px
     style MQC fill:#e1f5fe,stroke:#01579b,stroke-width:2px
-    style Q fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
-    style N fill:#fff9c4,stroke:#f57c00,stroke-width:2px
-    style J fill:#ffccbc,stroke:#d84315,stroke-width:2px
-    style K fill:#f8bbd0,stroke:#c2185b,stroke-width:2px
-    style BS fill:#b2ebf2,stroke:#00acc1,stroke-width:2px
 ```
 
 **Legend:**
