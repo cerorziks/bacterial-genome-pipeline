@@ -133,8 +133,12 @@ sudo usermod -aG docker $USER
 # Then LOG OUT and LOG BACK IN
 ```
 
-### Connection Issues (NCBI/AMR Download)
-If the database download fails with `Could not resolve host`, verify your internet connection. the pipeline is already configured with Google DNS fallbacks (`8.8.8.8`), but some restricted office/university networks may block external DNS. Ensure your host computer can reach `ftp.ncbi.nlm.nih.gov`.
+### Connection Issues (NCBI/AMR/Virulence Download)
+If the database download fails with `Could not resolve host`, verify your internet connection. the pipeline is already configured with Google DNS fallbacks (`8.8.8.8`), but some restricted office/university networks may block external DNS. Ensure your host computer can reach `ftp.ncbi.nlm.nih.gov` and `mgc.ac.cn`.
+
+Pre-downloaded databases can be used with:
+`--amr_db <path_to_amr_db>`
+`--vfdb_db <path_to_vfdb_db>`
 
 ---
 

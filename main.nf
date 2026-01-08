@@ -27,6 +27,7 @@ include { PROKKA                  } from './modules/annotation'
 include { AMRFINDERPLUS           } from './modules/amr_detection'
 include { DOWNLOAD_AMR_DB         } from './modules/amr_detection'
 include { VFDB_BLAST              } from './modules/virulence'
+include { DOWNLOAD_VFDB           } from './modules/virulence'
 include { MLST                    } from './modules/mlst'
 include { SNIPPY                  } from './modules/phylogeny'
 include { SNIPPY_CORE             } from './modules/phylogeny'
@@ -148,7 +149,8 @@ workflow {
     AMRFINDERPLUS(PROKKA.out.faa, DOWNLOAD_AMR_DB.out.db)
     
     // 8. Virulence factor detection
-    VFDB_BLAST(PROKKA.out.faa)
+    DOWNLOAD_VFDB()
+    VFDB_BLAST(PROKKA.out.faa, DOWNLOAD_VFDB.out.db)
     
     // 9. MLST typing
     if (!params.skip_mlst) {

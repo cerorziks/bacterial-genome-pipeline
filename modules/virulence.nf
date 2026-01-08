@@ -4,32 +4,39 @@
 ========================================================================================
 */
 
+process DOWNLOAD_VFDB {
+    publishDir "${params.outdir}/databases", mode: 'copy'
+    storeDir "${params.vfdb_db}"
+    
+    output:
+    path "VFDB_setB_pro.fas", emit: db
+    
+    script:
+    """
+    echo "Downloading VFDB database..."
+    curl -L -o VFDB_setB_pro.fas.gz http://www.mgc.ac.cn/VFs/Down/VFDB_setB_pro.fas.gz || \\
+    curl -L -o VFDB_setB_pro.fas.gz https://github.com/arpcard/VFDB/raw/master/VFDB_setB_pro.fas.gz
+    
+    gunzip -f VFDB_setB_pro.fas.gz
+    """
+}
+
 process VFDB_BLAST {
     tag "$sample"
     publishDir "${params.outdir}/virulence", mode: 'copy'
     
     input:
     tuple val(sample), path(protein_fasta)
+    path vfdb_file
     
     output:
     tuple val(sample), path("${sample}_virulence.tsv"), emit: results
     tuple val(sample), path("${sample}_virulence_summary.txt"), emit: summary
     
     script:
-    def vfdb = params.vfdb ?: "\$PWD/VFDB_setB_pro.fas"
     """
-    # Download VFDB if not provided
-    if [ ! -f "${vfdb}" ]; then
-        echo "Downloading VFDB database..."
-        wget -q http://www.mgc.ac.cn/VFs/Down/VFDB_setB_pro.fas.gz
-        gunzip VFDB_setB_pro.fas.gz
-        vfdb_file="VFDB_setB_pro.fas"
-    else
-        vfdb_file="${vfdb}"
-    fi
-    
     # Create BLAST database
-    makeblastdb -in \$vfdb_file -dbtype prot -out vfdb_db
+    makeblastdb -in ${vfdb_file} -dbtype prot -out vfdb_db
     
     # Run BLAST
     blastp \\
