@@ -35,6 +35,7 @@ include { IQTREE                  } from './modules/phylogeny'
 include { SNP_DISTS               } from './modules/phylogeny'
 include { SEQKIT_STATS            } from './modules/utils'
 include { SEQKIT_STATS_ASSEMBLY   } from './modules/utils'
+include { PANAROO                 } from './modules/pangenomics'
 include { KRAKEN2                 } from './modules/taxonomy'
 include { DOWNLOAD_KRAKEN2_DB     } from './modules/taxonomy'
 include { MULTIQC                  } from './modules/reporting'
@@ -186,6 +187,13 @@ workflow {
         SNP_DISTS(SNIPPY_CORE.out.alignment)
     }
     
+    // 10. Pangenomics (if enabled)
+    pangenome_stats_ch = Channel.value([])
+    if (!params.skip_pangenomics) {
+        PANAROO(PROKKA.out.gff.map{it[1]}.collect())
+        pangenome_stats_ch = PANAROO.out.stats
+    }
+
     // 11. Final Consolidated HTML Report (Standalone)
     tree_report_ch = (params.reference && !params.skip_phylogeny) ? IQTREE.out.tree : Channel.value([])
     
@@ -197,6 +205,7 @@ workflow {
         MLST.out.results.map{it[1]}.collect().ifEmpty([]),
         VFDB_BLAST.out.summary.map{it[1]}.collect().ifEmpty([]),
         KRAKEN2.out.report.map{it[1]}.collect().ifEmpty([]),
+        pangenome_stats_ch.ifEmpty([]),
         tree_report_ch
     )
 

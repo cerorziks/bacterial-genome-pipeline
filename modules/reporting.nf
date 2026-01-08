@@ -15,6 +15,7 @@ process COMPILED_HTML_REPORT {
     path(mlst_stats)
     path(virulence_stats)
     path(kraken_reports)
+    path(pan_stats)
     path(tree)
     
     output:
@@ -29,6 +30,7 @@ process COMPILED_HTML_REPORT {
 
     # Data dictionaries to store metrics by sample name
     data = {}
+    pan_data = {}
 
     def get_sample_name(filename, suffix):
         name = os.path.basename(filename)
@@ -103,7 +105,14 @@ process COMPILED_HTML_REPORT {
             if sname not in data: data[sname] = {}
             data[sname]['taxonomy'] = f"{top_species} ({top_pct}%)"
 
-    # 6. Parse QUAST
+    # 6. Parse Panaroo Stats
+    if os.path.exists("summary_statistics.txt"):
+        with open("summary_statistics.txt") as fh:
+            for line in fh:
+                if "Core genes" in line: pan_data['core'] = line.split()[-1]
+                if "Total genes" in line: pan_data['total'] = line.split()[-1]
+
+    # 7. Parse QUAST
     if os.path.exists("report.tsv"):
         with open("report.tsv") as fh:
             lines = [l.strip().split('\\t') for l in fh.readlines()]
@@ -212,6 +221,7 @@ process COMPILED_HTML_REPORT {
             .badge-primary {{ background: #ebf8ff; color: #2b6cb0; }}
             .badge-success {{ background: #f0fff4; color: #276749; }}
             .badge-info {{ background: #e6fffa; color: #2c7a7b; }}
+            .badge-warn {{ background: #fffaf0; color: #744210; }}
             .amr-list {{
                 font-size: 0.85em;
                 color: #555;
@@ -224,6 +234,30 @@ process COMPILED_HTML_REPORT {
                 text-align: center;
                 font-size: 0.9em;
                 color: #999;
+            }}
+            .summary-box {{
+                display: flex;
+                gap: 20px;
+                margin-bottom: 20px;
+            }}
+            .metric {{
+                flex: 1;
+                background: #f8fafc;
+                padding: 15px;
+                border-radius: 8px;
+                border: 1px solid #e2e8f0;
+                text-align: center;
+            }}
+            .metric-val {{
+                font-size: 1.5em;
+                font-weight: bold;
+                color: var(--accent);
+                display: block;
+            }}
+            .metric-label {{
+                font-size: 0.8em;
+                color: #64748b;
+                text-transform: uppercase;
             }}
             .tree-section {{
                 padding: 20px;
@@ -241,7 +275,30 @@ process COMPILED_HTML_REPORT {
                 Bacterial Genome Analysis Summary
                 <span class="timestamp">Generated on: {now}</span>
             </h1>
+    \"\"\"
 
+    if pan_data:
+        html += f\"\"\"
+            <section>
+                <h2>0. Pangenome Overview (Population Analysis)</h2>
+                <div class=\"summary-box\">
+                    <div class=\"metric\">
+                        <span class=\"metric-val\">{pan_data.get('core', '-')}</span>
+                        <span class=\"metric-label\">Core Genes (Shared by all)</span>
+                    </div>
+                    <div class=\"metric\">
+                        <span class=\"metric-val\">{pan_data.get('total', '-')}</span>
+                        <span class=\"metric-label\">Total Pangenome Genes</span>
+                    </div>
+                    <div class=\"metric\">
+                        <span class=\"metric-val\">{len(data.keys())}</span>
+                        <span class=\"metric-label\">Total Samples Analyzed</span>
+                    </div>
+                </div>
+            </section>
+        \"\"\"
+
+    html += \"\"\"
             <section>
                 <h2>1. Sequencing and Assembly Statistics</h2>
                 <table>

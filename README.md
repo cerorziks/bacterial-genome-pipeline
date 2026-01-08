@@ -10,6 +10,7 @@ A comprehensive Nextflow pipeline for analyzing bacterial genomes from Illumina 
 - **Assembly QC**: QUAST quality metrics for assembly assessment
 - **Annotation**: Prokka genome annotation
 - **Taxonomy**: **Kraken2** with 'babykraken' database for rapid species verification
+- **Pangenomics**: **Panaroo** for core and accessory genome analysis
 - **AMR Detection**: AMRFinderPlus with automated database management and persistent storage
 - **Virulence**: BLAST against VFDB for virulence factor detection
 - **MLST**: Multi-locus sequence typing
@@ -53,6 +54,8 @@ graph TD
     C --> MQC
     S1 --> MQC
     
+    H --> PAN[Panaroo Pangenomics]
+    
     BS[Consolidated Report Generator]
     
     S1 --> BS
@@ -62,6 +65,7 @@ graph TD
     I --> BS
     K --> BS
     N --> BS
+    PAN --> BS
     
     BS --> Q[Final HTML Summary]
     
@@ -197,6 +201,7 @@ results/
 ├── quast/               # Assembly quality metrics
 ├── annotation/          # Prokka annotations
 ├── taxonomy/            # Kraken2 species verification
+├── pangenomics/         # Panaroo core/accessory results
 ├── amr/                 # AMR resistance genes
 ├── virulence/           # Virulence factors
 ├── mlst/                # MLST typing results
@@ -282,6 +287,7 @@ If you use this pipeline, please cite the tools:
 - **Prokka**: Seemann (2014) Bioinformatics ([GitHub](https://github.com/tseemann/prokka))
 - **AMRFinderPlus**: Feldgarden et al. (2021) Scientific Reports ([GitHub](https://github.com/ncbi/amr))
 - **VFDB**: Chen et al. (2005) Nucleic Acids Research ([Home](http://www.mgc.ac.cn/VFs/))
+- **Panaroo**: Tonkin-Hill et al. (2020) Genome Biology ([GitHub](https://github.com/gtonkinhill/panaroo))
 - **mlst**: Seemann T. ([GitHub: tseemann/mlst](https://github.com/tseemann/mlst))
 - **Snippy**: Seemann T. ([GitHub: tseemann/snippy](https://github.com/tseemann/snippy))
 - **IQ-TREE**: Nguyen et al. (2015) Molecular Biology and Evolution ([GitHub](https://github.com/iqtree/iqtree2))

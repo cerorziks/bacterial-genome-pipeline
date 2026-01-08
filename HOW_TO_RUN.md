@@ -55,9 +55,20 @@ nextflow run main.nf \
   -profile docker
 ```
 
+**Advanced options (Skipping steps):**
+```bash
+nextflow run main.nf \
+  --input my_samples.csv \
+  --outdir results \
+  --skip_phylogeny \
+  --skip_pangenomics \
+  -profile docker
+```
+
 ### STEP 3: Check Results
 
 > [!TIP]
+The Standalone HTML Report (`results/final_report/summary_report.html`) contains the consolidated results including **Taxonomy**, **Pangenomics summary**, and **AMR profiles**.
 > **Database Auto-Download**: On the first run, the pipeline will automatically download the AMRFinderPlus database (approx. 400MB) into a folder named `amrfinder_db`. This ensures you have the latest resistance genes. Subsequent runs will use this local folder to save time and bandwidth.
 > 
 > **Monitoring Progress**: To see the download percentage in real-time, open a new terminal and run:
