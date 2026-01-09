@@ -128,16 +128,16 @@ process AMRFINDERPLUS {
         echo "======================================" >> ${sample}_amr_summary.txt
         
         for CAT in AMR VIRULENCE METAL BIOCIDE ACID HEAT; do
-            count=$(awk -v cat="$CAT" -F'\t' '$9 ~ cat {count++} END {print count+0}' ${sample}_amr.tsv)
-            if [ "$count" -gt 0 ]; then
+            count=\$(awk -v cat="\$CAT" -F'\t' '\$9 ~ cat {count++} END {print count+0}' ${sample}_amr.tsv)
+            if [ "\$count" -gt 0 ]; then
                 echo "" >> ${sample}_amr_summary.txt
-                echo "[$CAT Resistance: $count genes]" >> ${sample}_amr_summary.txt
-                awk -v cat="$CAT" -F'\t' '$9 ~ cat {print $6 " (" $11 ")"}' ${sample}_amr.tsv | sort -u | sed 's/^/  - /' >> ${sample}_amr_summary.txt
+                echo "[\$CAT Resistance: \$count genes]" >> ${sample}_amr_summary.txt
+                awk -v cat="\$CAT" -F'\t' '\$9 ~ cat {print \$6 " (" \$11 ")"}' ${sample}_amr.tsv | sort -u | sed 's/^/  - /' >> ${sample}_amr_summary.txt
             fi
         done
         
         echo "" >> ${sample}_amr_summary.txt
-        echo "Total genes detected: $(tail -n +2 ${sample}_amr.tsv | wc -l)" >> ${sample}_amr_summary.txt
+        echo "Total genes detected: \$(tail -n +2 ${sample}_amr.tsv | wc -l)" >> ${sample}_amr_summary.txt
     else
         echo "No AMR genes detected for ${sample}" > ${sample}_amr_summary.txt
     fi
