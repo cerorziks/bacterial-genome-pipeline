@@ -72,20 +72,39 @@ process COMPILED_HTML_REPORT {
                 data[sname]['st'] = cols[2] if len(cols) > 2 else "-"
                 data[sname]['scheme'] = cols[1] if len(cols) > 1 else "-"
 
-    # 3. Parse AMR for Gene Count and List
+    # 3. Parse AMR for Gene Count and Detailed List (Categorized)
     amr_files = glob.glob("*_amr.tsv")
     log(f"Found {len(amr_files)} AMR files")
     for f in amr_files:
         sname = get_sample_name(f, "_amr.tsv")
+        if sname not in data: data[sname] = {}
+        
+        counts = {'AMR': 0, 'VIRULENCE': 0, 'METAL': 0, 'BIOCIDE': 0, 'ACID': 0, 'HEAT': 0, 'OTHER': 0}
+        categorized_genes = {k: [] for k in counts.keys()}
+        
         with open(f) as fh:
-            lines = fh.readlines()
-            genes = []
-            for l in lines[1:]:
-                c = l.split('\\t')
-                if len(c) > 5: genes.append(c[5])
-            if sname not in data: data[sname] = {}
-            data[sname]['amr_count'] = len(genes)
-            data[sname]['amr_list'] = ", ".join(sorted(set(genes))) if genes else "None"
+            header = fh.readline()
+            for l in fh:
+                c = l.strip().split('\\t')
+                if len(c) > 10:
+                    gene = c[5]
+                    element_type = c[8].upper()
+                    subclass = c[10]
+                    
+                    cat = 'OTHER'
+                    if 'AMR' in element_type: cat = 'AMR'
+                    elif 'VIRULENCE' in element_type: cat = 'VIRULENCE'
+                    elif 'METAL' in element_type: cat = 'METAL'
+                    elif 'BIOCIDE' in element_type: cat = 'BIOCIDE'
+                    elif 'ACID' in element_type: cat = 'ACID'
+                    elif 'HEAT' in element_type: cat = 'HEAT'
+                    
+                    categorized_genes[cat].append(f"{gene} ({subclass})")
+                    counts[cat] += 1
+            
+            data[sname]['amr_counts'] = counts
+            data[sname]['amr_categorized'] = {k: ", ".join(sorted(set(v))) for k, v in categorized_genes.items() if v}
+            data[sname]['amr_total'] = sum(counts.values())
 
     # 4. Parse Virulence
     vir_files = glob.glob("*_virulence_summary.txt")
@@ -250,8 +269,20 @@ process COMPILED_HTML_REPORT {
                 font-size: 0.85em;
                 color: #555;
                 font-style: italic;
-                max-width: 300px;
+                max-width: 400px;
                 word-wrap: break-word;
+            }}
+            .resistome-cat {{
+                margin-bottom: 5px;
+            }}
+            .resistome-name {{
+                font-weight: bold;
+                font-size: 0.8em;
+                color: var(--primary);
+                display: block;
+            }}
+            .resistome-genes {{
+                font-size: 0.9em;
             }}
             .tech-note {{
                 font-size: 0.8em;
@@ -311,14 +342,14 @@ process COMPILED_HTML_REPORT {
         </style>
     </head>
     <body>
-        <div class="container">
+        <div class=\"container\">
             <h1>
                 Bacterial Genome Analysis Summary
-                <span class="timestamp">Generated on: {now}</span>
+                <span class=\"timestamp\">Generated on: {now}</span>
             </h1>
 
-            <div class="tech-note">
-                <strong>Note:</strong> Taxonomic verification performed using the MDU-PHL BabyKraken database (10MB). Results are optimized for common public health pathogens; low percentages or "Unknown" may occur for rare species.
+            <div class=\"tech-note\">
+                <strong>Note:</strong> Taxonomic verification performed using the MDU-PHL BabyKraken database (10MB). Results are optimized for common public health pathogens; low percentages or \"Unknown\" may occur for rare species.
             </div>
     \"\"\"
 
@@ -386,23 +417,35 @@ process COMPILED_HTML_REPORT {
                         <tr>
                             <th>Sample ID</th>
                             <th>MLST / ST</th>
-                            <th>AMR Genes</th>
+                            <th>Total Genes</th>
                             <th>Virulence Factors</th>
-                            <th>Resistome Profile</th>
+                            <th>Detailed Resistome Profile</th>
                         </tr>
                     </thead>
                     <tbody>
     \"\"\"
 
     for sname in sorted(data.keys()):
-        st = f"{data[sname].get('scheme', '-')}: {data[sname].get('st', '-')}" if data[sname].get('st') else "-"
+        st = f\"{data[sname].get('scheme', '-')}: {data[sname].get('st', '-')}\" if data[sname].get('st') else \"-\"
+        amr_counts = data[sname].get('amr_counts', {})
+        amr_cat = data[sname].get('amr_categorized', {})
+        
+        resistome_html = \"\"
+        for cat in ['AMR', 'VIRULENCE', 'METAL', 'BIOCIDE', 'ACID', 'HEAT']:
+            if cat in amr_cat:
+                count = amr_counts.get(cat, 0)
+                genes = amr_cat.get(cat, '')
+                resistome_html += f'<div class=\"resistome-cat\"><span class=\"resistome-name\">{cat} ({count})</span><span class=\"resistome-genes\">{genes}</span></div>'
+        
+        if not resistome_html: resistome_html = \"None detected\"
+
         html += f\"\"\"
                         <tr>
                             <td><strong>{sname}</strong></td>
                             <td><span class=\"badge badge-primary\">{st}</span></td>
-                            <td><span class=\"badge badge-success\">{data[sname].get('amr_count', '0')}</span></td>
+                            <td><span class=\"badge badge-success\">{data[sname].get('amr_total', '0')}</span></td>
                             <td>{data[sname].get('vf_count', '0')}</td>
-                            <td class=\"amr-list\">{data[sname].get('amr_list', 'None')}</td>
+                            <td class=\"amr-list\">{resistome_html}</td>
                         </tr>
         \"\"\"
 
@@ -412,7 +455,7 @@ process COMPILED_HTML_REPORT {
             </section>
     \"\"\"
 
-    if os.path.exists("*.treefile") or glob.glob("*.treefile"):
+    if os.path.exists(\"*.treefile\") or glob.glob(\"*.treefile\"):
         html += \"\"\"
             <section>
                 <h2>3. Phylogenetic Analysis</h2>
@@ -434,26 +477,26 @@ process COMPILED_HTML_REPORT {
     with open('summary_report.html', 'w') as f:
         f.write(html)
     
-    log("Report generation completed successfully.")
-    """
+    log(\"Report generation completed successfully.\")
+    \"\"\"
 }
 
 process MULTIQC {
-    publishDir "${params.outdir}/multiqc", mode: 'copy'
+    publishDir \"${params.outdir}/multiqc\", mode: 'copy'
     
     input:
     path(files)
     
     output:
-    path("multiqc_report.html"), emit: html
-    path("*_data"), emit: data
+    path(\"multiqc_report.html\"), emit: html
+    path(\"*_data\"), emit: data
     
     script:
-    """
-    multiqc \\
-        --title "${params.multiqc_title}" \\
-        --filename multiqc_report.html \\
-        --force \\
+    \"\"\"
+    multiqc \\\\
+        --title \"${params.multiqc_title}\" \\\\
+        --filename multiqc_report.html \\\\
+        --force \\\\
         .
-    """
+    \"\"\"
 }
