@@ -47,7 +47,7 @@ graph TD
     C --> E{Assembly Selection}
     
     E -- Default --> E1[SPAdes Assembly]
-    E -- "--assembler shovill" --> E2[Shovill Assembly]
+    E -- Option --> E2[Shovill Assembly]
     
     E1 --> F[Assembly Results]
     E2 --> F
@@ -72,19 +72,15 @@ graph TD
     
     H --> PAN[Panaroo Pangenomics]
     
-    BS[Consolidated Report Generator]
-    
-    S1 --> BS
-    S2 --> BS
-    G --> BS
-    J --> BS
-    I --> BS
-    K --> BS
-    N --> BS
-    PAN --> BS
-    KR --> BS
-    
-    BS --> Q[Final HTML Summary]
+    S1 --> Q[Final HTML Summary]
+    S2 --> Q
+    G --> Q
+    J --> Q
+    I --> Q
+    K --> Q
+    N --> Q
+    PAN --> Q
+    KR --> Q
     
     style A fill:#BBDEFB,stroke:#1976D2,stroke-width:2px
     style Q fill:#A5D6A7,stroke:#2E7D32,stroke-width:3px
@@ -92,7 +88,6 @@ graph TD
     style J fill:#FFAB91,stroke:#D84315,stroke-width:2px
     style K fill:#F48FB1,stroke:#C2185B,stroke-width:2px
     style KR fill:#CE93D8,stroke:#7B1FA2,stroke-width:2px
-    style BS fill:#80DEEA,stroke:#0097A7,stroke-width:2px
     style MQC fill:#81D4FA,stroke:#0277BD,stroke-width:2px
 ```
 
