@@ -36,7 +36,18 @@ process KRAKEN2 {
     echo "[Taxonomy] Running Kraken2 for ${sample}..."
     
     # Robustly find the actual database directory containing the hash.k2d file
-    DB_DIR=\$(find -L ${db} -name "hash.k2d" | xargs dirname | head -n 1)
+    # If find returns nothing, fallback to the staged dir itself
+    TARGET_FILE=\$(find -L ${db} -name "hash.k2d" | head -n 1)
+    
+    if [ -z "\$TARGET_FILE" ]; then
+        echo "WARNING: Could not find hash.k2d in ${db}. Listing contents:"
+        ls -R ${db}
+        DB_DIR=${db}
+    else
+        DB_DIR=\$(dirname \$TARGET_FILE)
+    fi
+    
+    echo "Using Kraken2 DB at: \$DB_DIR"
     
     kraken2 \\
         --db \$DB_DIR \\
