@@ -231,6 +231,7 @@ nextflow run main.nf \
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--reference` | null | Reference genome for phylogeny (FASTA) |
+| `--organism` | null | Species for AMRFinder point mutations (e.g., 'Salmonella') |
 | `--kraken_db` | null | Path to local Kraken2 database (skips download) |
 | `--vfdb` | null | Path to VFDB database (skips download) |
 | `--amr_db` | null | Path to AMRFinder database (skips download) |
@@ -291,6 +292,21 @@ nextflow run main.nf --input samples.csv --outdir results -profile docker
 - **Location**: `results/amr/`
 - Each sample has a `*_amr.tsv` file with detailed AMR gene predictions
 - `*_amr_summary.txt` provides a quick overview of detected resistance genes
+
+## Advanced Usage
+
+### Running Other Species
+The pipeline is species-agnostic, but you can improve detection (especially for point mutations) by specifying the organism.
+
+**Example for Salmonella:**
+```bash
+nextflow run main.nf \
+  --input samples.csv \
+  --organism Salmonella \
+  --outdir results \
+  -profile docker
+```
+*Supported organisms for AMRFinder include: Escherichia, Salmonella, Campylobacter, Staphylococcus, Acinetobacter, etc.*
 
 ### Virulence Factors
 - **Location**: `results/virulence/`

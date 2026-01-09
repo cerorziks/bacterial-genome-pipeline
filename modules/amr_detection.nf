@@ -83,12 +83,19 @@ process AMRFINDERPLUS {
     fi
 
     if [ -n "\$DB_PATH" ] && [ -d "\$DB_PATH" ]; then
-        amrfinder \\
-            --protein ${protein_fasta} \\
-            --threads $task.cpus \\
-            --database \$DB_PATH \\
-            --output ${sample}_amr.tsv \\
-            --plus
+        # Build organism flag if provided
+        ORG_FLAG=""
+        if [ "${params.organism}" != "null" ] && [ -n "${params.organism}" ]; then
+            ORG_FLAG="--organism ${params.organism}"
+        fi
+
+        amrfinder \
+            --protein ${protein_fasta} \
+            --threads $task.cpus \
+            --database \$DB_PATH \
+            --output ${sample}_amr.tsv \
+            --plus \
+            \$ORG_FLAG
     else
         echo "Error: No valid AMR database found for ${amr_db}"
         echo "Current directory contents:"
