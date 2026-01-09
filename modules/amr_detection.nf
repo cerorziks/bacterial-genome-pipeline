@@ -14,8 +14,24 @@ process DOWNLOAD_AMR_DB {
     
     script:
     """
-    echo "Starting/Resuming AMR database download from NCBI..."
-    echo "Note: This can take 5-10 minutes on slower connections."
+    # Check if database already exists
+    if [ -d "latest" ] && [ -f "latest/AMR.LIB" ]; then
+        echo "AMRFinder database already exists in current directory. Skipping download." >&2
+        echo "Database location: \$(pwd)/latest" >&2
+        exit 0
+    fi
+    
+    # Check for dated directories (alternative structure)
+    EXISTING_DB=\$(ls -d 2* 2>/dev/null | head -n 1)
+    if [ -n "\$EXISTING_DB" ] && [ -f "\$EXISTING_DB/AMR.LIB" ]; then
+        echo "AMRFinder database already exists: \$EXISTING_DB" >&2
+        echo "Creating 'latest' symlink to existing database..." >&2
+        ln -sf "\$EXISTING_DB" latest
+        exit 0
+    fi
+    
+    echo "Starting AMR database download from NCBI..." >&2
+    echo "Note: This can take 5-10 minutes on slower connections." >&2
     
     # Run update directly in the storeDir
     # We pipe to amrfinder_update.log for our watcher to read
