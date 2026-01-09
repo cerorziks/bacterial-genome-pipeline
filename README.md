@@ -218,18 +218,64 @@ nextflow run cerorziks/bacterial-genome-pipeline \
 
 ## Database Management
 
-### Default Behavior
-By default, the pipeline automatically downloads necessary databases:
-- **Kraken2**: Downloads 'BabyKraken' (optimized 10MB DB) to `./kraken2_db/`
-- **AMRFinder**: Downloads latest AMR DB to `./amrfinder_db/`
-- **VFDB**: Downloads latest Virulence Factor DB to `./vfdb_db/`
+### Recommended Setup: Pre-download Databases
+
+**For the best experience, we recommend downloading databases before your first run.** This avoids potential network issues during analysis and ensures faster subsequent runs.
+
+#### Download All Databases (Recommended)
+
+Run this **once** to download all databases to a shared location:
+
+```bash
+# Create a databases directory
+mkdir -p ~/pipeline_databases
+cd ~/pipeline_databases
+
+# 1. Download AMRFinder database (~450MB, 5-10 minutes)
+docker run --rm -v $(pwd):/data staphb/ncbi-amrfinderplus:latest \
+  amrfinder_update -d /data/amrfinder
+
+# 2. Download VFDB database (~50MB)
+mkdir -p vfdb
+curl -L -o vfdb/VFDB_setB_pro.fas.gz http://www.mgc.ac.cn/VFs/Down/VFDB_setB_pro.fas.gz
+gunzip vfdb/VFDB_setB_pro.fas.gz
+
+# 3. Download BabyKraken database (~10MB) - or use a larger standard database
+mkdir -p kraken2
+curl -L "https://github.com/MDU-PHL/babykraken/raw/master/dist/babykraken.tar.gz" | \
+  tar xz -C kraken2 --strip-components=1
+```
+
+#### Run Pipeline with Pre-downloaded Databases
+
+```bash
+nextflow run cerorziks/bacterial-genome-pipeline \
+  -r bacterial-genome-pipeline_v2 \
+  --input samplesheet.csv \
+  --outdir results \
+  --amr_db ~/pipeline_databases/amrfinder \
+  --vfdb ~/pipeline_databases/vfdb/VFDB_setB_pro.fas \
+  --kraken_db ~/pipeline_databases/kraken2 \
+  -profile docker
+```
+
+### Default Behavior (Auto-download)
+
+If you don't specify database paths, the pipeline automatically downloads them to `./databases/`:
+- **Kraken2**: `./databases/kraken2/babykraken/` (~10MB)
+- **AMRFinder**: `./databases/amrfinder/latest/` (~450MB)
+- **VFDB**: `./databases/vfdb/VFDB_setB_pro.fas` (~50MB)
+
+**Smart Caching:** Once downloaded, databases are cached and reused automatically in future runs from the same directory.
 
 ### Using Pre-downloaded Databases
-If you already have these databases downloaded (e.g., the full standard Kraken2 database), you can specify their paths to avoid re-downloading or to use a better resource.
+
+If you already have these databases, specify their paths:
 
 **Custom Kraken2 Database:**
 ```bash
-nextflow run main.nf \
+nextflow run cerorziks/bacterial-genome-pipeline \
+  -r bacterial-genome-pipeline_v2 \
   --input samples.csv \
   --kraken_db /path/to/your/custom_kraken_db \
   --outdir results \
@@ -238,17 +284,19 @@ nextflow run main.nf \
 
 **Custom AMRFinder Database:**
 ```bash
-nextflow run main.nf \
+nextflow run cerorziks/bacterial-genome-pipeline \
+  -r bacterial-genome-pipeline_v2 \
   --input samples.csv \
   --amr_db /path/to/amrfinder_db \
   --outdir results \
   -profile docker
 ```
-*Note: For AMRFinder, point to the directory containing the `latest` folder or the `AMR.LIB` file.*
+*Note: For AMRFinder, point to the directory containing the `latest` folder or dated folder (e.g., `2025-12-03.1`).*
 
 **Custom VFDB:**
 ```bash
-nextflow run main.nf \
+nextflow run cerorziks/bacterial-genome-pipeline \
+  -r bacterial-genome-pipeline_v2 \
   --input samples.csv \
   --vfdb /path/to/VFDB_setB_pro.fas \
   --outdir results \
