@@ -22,7 +22,21 @@ A comprehensive Nextflow pipeline for analyzing bacterial genomes from Illumina 
 The pipeline processes bacterial genome data through the following stages:
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '18px', 'fontFamily': 'arial'}}}%%
+%%{
+  init: {
+    'theme': 'base',
+    'themeVariables': {
+      'fontSize': '24px',
+      'fontFamily': 'arial',
+      'lineColor': '#333'
+    },
+    'flowchart': {
+      'nodeSpacing': 30,
+      'rankSpacing': 40,
+      'curve': 'basis'
+    }
+  }
+}%%
 graph TD
     A[Paired-End FASTQ Files] --> B[FastQC - Raw Reads]
     A --> C[fastp Trimming & QC]
@@ -33,7 +47,7 @@ graph TD
     C --> E{Assembly Selection}
     
     E -- Default --> E1[SPAdes Assembly]
-    E -- "--assembler shovill" --> E2[Shovill Assembly]
+    E -- Option --> E2[Shovill Assembly]
     
     E1 --> F[Assembly Results]
     E2 --> F
@@ -58,27 +72,23 @@ graph TD
     
     H --> PAN[Panaroo Pangenomics]
     
-    BS[Consolidated Report Generator]
+    S1 --> Q[Final HTML Summary]
+    S2 --> Q
+    G --> Q
+    J --> Q
+    I --> Q
+    K --> Q
+    N --> Q
+    PAN --> Q
+    KR --> Q
     
-    S1 --> BS
-    S2 --> BS
-    G --> BS
-    J --> BS
-    I --> BS
-    K --> BS
-    N --> BS
-    PAN --> BS
-    KR --> BS
-    
-    BS --> Q[Final HTML Summary]
-    
-    style Q fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
-    style N fill:#fff9c4,stroke:#f57c00,stroke-width:2px
-    style J fill:#ffccbc,stroke:#d84315,stroke-width:2px
-    style K fill:#f8bbd0,stroke:#c2185b,stroke-width:2px
-    style KR fill:#e1bee7,stroke:#8e24aa,stroke-width:2px
-    style BS fill:#b2ebf2,stroke:#00acc1,stroke-width:2px
-    style MQC fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    style A fill:#BBDEFB,stroke:#1976D2,stroke-width:2px
+    style Q fill:#A5D6A7,stroke:#2E7D32,stroke-width:3px
+    style N fill:#FFF59D,stroke:#FBC02D,stroke-width:2px
+    style J fill:#FFAB91,stroke:#D84315,stroke-width:2px
+    style K fill:#F48FB1,stroke:#C2185B,stroke-width:2px
+    style KR fill:#CE93D8,stroke:#7B1FA2,stroke-width:2px
+    style MQC fill:#81D4FA,stroke:#0277BD,stroke-width:2px
 ```
 
 **Legend:**
@@ -155,8 +165,67 @@ nextflow run main.nf \
 ```bash
 nextflow run main.nf \
   --input samplesheet.csv \
+  -profile docker
+```
+
+### 4. Run Directly from GitHub
+
+You can run this pipeline directly from the GitHub repository without cloning it manually. Nextflow will handle the downloading.
+
+**Basic Run:**
+```bash
+nextflow run cerorziks/bacterial-genome-pipeline \
+  --input samplesheet.csv \
   --outdir results \
-  --reference reference_genome.fasta \
+  -profile docker \
+  -r main
+```
+
+**Using a Specific Version:**
+```bash
+nextflow run cerorziks/bacterial-genome-pipeline \
+  -r v1.1.0 \
+  --input samplesheet.csv \
+  --outdir results \
+  -profile docker
+```
+
+## Database Management
+
+### Default Behavior
+By default, the pipeline automatically downloads necessary databases:
+- **Kraken2**: Downloads 'BabyKraken' (optimized 10MB DB) to `./kraken2_db/`
+- **AMRFinder**: Downloads latest AMR DB to `./amrfinder_db/`
+- **VFDB**: Downloads latest Virulence Factor DB to `./vfdb_db/`
+
+### Using Pre-downloaded Databases
+If you already have these databases downloaded (e.g., the full standard Kraken2 database), you can specify their paths to avoid re-downloading or to use a better resource.
+
+**Custom Kraken2 Database:**
+```bash
+nextflow run main.nf \
+  --input samples.csv \
+  --kraken_db /path/to/your/custom_kraken_db \
+  --outdir results \
+  -profile docker
+```
+
+**Custom AMRFinder Database:**
+```bash
+nextflow run main.nf \
+  --input samples.csv \
+  --amr_db /path/to/amrfinder_db \
+  --outdir results \
+  -profile docker
+```
+*Note: For AMRFinder, point to the directory containing the `latest` folder or the `AMR.LIB` file.*
+
+**Custom VFDB:**
+```bash
+nextflow run main.nf \
+  --input samples.csv \
+  --vfdb /path/to/VFDB_setB_pro.fas \
+  --outdir results \
   -profile docker
 ```
 
@@ -172,8 +241,10 @@ nextflow run main.nf \
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--reference` | null | Reference genome for phylogeny (FASTA) |
-| `--vfdb` | null | Path to VFDB database (auto-downloaded if not provided) |
-| `--amr_db` | './amrfinder_db' | Path to store/load AMRFinder database |
+| `--organism` | null | Species for AMRFinder point mutations (e.g., 'Salmonella') |
+| `--kraken_db` | null | Path to local Kraken2 database (skips download) |
+| `--vfdb` | null | Path to VFDB database (skips download) |
+| `--amr_db` | null | Path to AMRFinder database (skips download) |
 | `--skip_phylogeny` | false | Skip phylogenetic analysis |
 | `--skip_mlst` | false | Skip MLST typing |
 | `--assembler` | 'spades' | Assembler to use ('spades' or 'shovill') |
@@ -231,6 +302,21 @@ nextflow run main.nf --input samples.csv --outdir results -profile docker
 - **Location**: `results/amr/`
 - Each sample has a `*_amr.tsv` file with detailed AMR gene predictions
 - `*_amr_summary.txt` provides a quick overview of detected resistance genes
+
+## Advanced Usage
+
+### Running Other Species
+The pipeline is species-agnostic, but you can improve detection (especially for point mutations) by specifying the organism.
+
+**Example for Salmonella:**
+```bash
+nextflow run main.nf \
+  --input samples.csv \
+  --organism Salmonella \
+  --outdir results \
+  -profile docker
+```
+*Supported organisms for AMRFinder include: Escherichia, Salmonella, Campylobacter, Staphylococcus, Acinetobacter, etc.*
 
 ### Virulence Factors
 - **Location**: `results/virulence/`

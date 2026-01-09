@@ -6,7 +6,7 @@
 
 process DOWNLOAD_VFDB {
     publishDir "${params.outdir}/databases", mode: 'copy'
-    storeDir "${params.vfdb_db}"
+    storeDir "${params.db_cache}/vfdb"
     
     output:
     path "VFDB_setB_pro.fas", emit: db
