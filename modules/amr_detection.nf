@@ -124,6 +124,8 @@ process AMRFINDERPLUS {
         exit 1
     fi
     
+    # Create categorized summary
+    if [ -s ${sample}_amr.tsv ]; then
         echo "Resistome Profile for ${sample}:" > ${sample}_amr_summary.txt
         echo "======================================" >> ${sample}_amr_summary.txt
         
