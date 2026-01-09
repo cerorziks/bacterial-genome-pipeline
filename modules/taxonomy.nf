@@ -34,8 +34,12 @@ process KRAKEN2 {
     script:
     """
     echo "[Taxonomy] Running Kraken2 for ${sample}..."
+    
+    # Robustly find the actual database directory containing the hash.k2d file
+    DB_DIR=\$(find -L ${db} -name "hash.k2d" | xargs dirname | head -n 1)
+    
     kraken2 \\
-        --db ${db} \\
+        --db \$DB_DIR \\
         --threads $task.cpus \\
         --paired \\
         --report ${sample}_kraken2.report \\
