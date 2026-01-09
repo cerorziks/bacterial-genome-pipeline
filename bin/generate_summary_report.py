@@ -145,9 +145,15 @@ for sname in sorted(data.keys()):
     st = f"{data[sname].get('scheme','-')}: {data[sname].get('st','-')}" if data[sname].get('st') else "-"
     amr_cat, amr_counts = data[sname].get('amr_categorized',{}), data[sname].get('amr_counts',{})
     res_html = ""
-    for cat in ['AMR','VIRULENCE','METAL','BIOCIDE','ACID','HEAT']:
-        if cat in amr_cat:
-            res_html += f'<div class="amr-sec"><span class="amr-lab">{cat} ({amr_counts[cat]})</span><div style="font-size:0.85em;">{amr_cat[cat]}</div></div>'
+    # Sort categories to ensure AMR and VIRULENCE are near the top, then others
+    preferred_order = ['AMR', 'VIRULENCE', 'METAL', 'BIOCIDE', 'ACID', 'HEAT', 'OTHER']
+    all_found_cats = sorted(amr_cat.keys(), key=lambda x: preferred_order.index(x) if x in preferred_order else 99)
+    
+    for cat in all_found_cats:
+        count = amr_counts.get(cat, 0)
+        genes = amr_cat.get(cat, '')
+        res_html += f'<div class="amr-sec"><span class="amr-lab">{cat} ({count})</span><div style="font-size:0.85em;">{genes}</div></div>'
+    
     html += f"<tr><td><b>{sname}</b></td><td>{st}</td><td>{data[sname].get('amr_total','0')}</td><td>{res_html or 'None'}</td></tr>"
 html += "</tbody></table></div></body></html>"
 with open('summary_report.html', 'w') as f: f.write(html)
