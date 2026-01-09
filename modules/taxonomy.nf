@@ -22,6 +22,7 @@ process DOWNLOAD_KRAKEN2_DB {
 process KRAKEN2 {
     tag "$sample"
     publishDir "${params.outdir}/taxonomy", mode: 'copy'
+    stageInMode 'copy'
     
     input:
     tuple val(sample), path(read1), path(read2)
