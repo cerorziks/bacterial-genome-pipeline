@@ -6,7 +6,7 @@ A comprehensive Nextflow pipeline for analyzing bacterial genomes from Illumina 
 
 - **Quality Control**: FastQC and fastp for read quality assessment and trimming
 - **Statistics**: **SeqKit** for rapid read and assembly metrics
-- **Assembly**: de novo assembly using **SPAdes** (default) or **Shovill** (faster)
+- **Assembly**: de novo assembly using **Shovill** (default) or **SPAdes** (optional)
 - **Assembly QC**: QUAST quality metrics for assembly assessment
 - **Annotation**: Prokka genome annotation
 - **Taxonomy**: **Kraken2** with 'babykraken' database for rapid species verification
@@ -46,8 +46,8 @@ graph TD
     C --> KR[Kraken2 Taxonomy]
     C --> E{Assembly Selection}
     
-    E -- Default --> E1[SPAdes Assembly]
-    E -- Option --> E2[Shovill Assembly]
+    E -- Default --> E2[Shovill Assembly]
+    E -- Option --> E1[SPAdes Assembly]
     
     E1 --> F[Assembly Results]
     E2 --> F
@@ -108,9 +108,9 @@ graph TD
 - **Git** (for cloning the repository)
 
 ### Hardware Recommendations
-- **Minimum**: 8 CPUs, 32 GB RAM, 100 GB Free Disk Space
-- **Recommended**: 16 CPUs, 128 GB RAM, 500 GB Free Disk Space (for large datasets)
-- *Note: SPAdes assembly is memory-intensive. For large genomes or high depth, ensure at least 32GB RAM is available.*
+- **Minimum**: 4 CPUs, 8 GB RAM, 50 GB Free Disk Space
+- **Recommended**: 8 CPUs, 16 GB RAM, 100 GB Free Disk Space
+- *Note: The pipeline has been optimized for standard laptops (e.g., MacBook Air/Pro, standard Windows laptops).*
 
 ## Environment Setup
 
@@ -161,7 +161,14 @@ sudo mv nextflow /usr/local/bin/
 
 ### 2. Prepare Input Samplesheet
 
-Create a CSV file with your samples:
+You can generate the samplesheet automatically using the provided helper script:
+
+```bash
+# Generate samplesheet from a directory of FASTQ files
+python3 bin/fastq_to_samplesheet.py /path/to/fastq_directory -o samples.csv
+```
+
+Or create a CSV file manually:
 
 ```csv
 sample,read1,read2
@@ -266,7 +273,7 @@ nextflow run main.nf \
 | `--amr_db` | null | Path to AMRFinder database (skips download) |
 | `--skip_phylogeny` | false | Skip phylogenetic analysis |
 | `--skip_mlst` | false | Skip MLST typing |
-| `--assembler` | 'spades' | Assembler to use ('spades' or 'shovill') |
+| `--assembler` | 'shovill' | Assembler to use ('shovill' or 'spades') |
 | `--fastp_qualified_quality_phred` | 20 | Minimum quality score for fastp filtering |
 | `--fastp_min_length` | 50 | Minimum read length after trimming |
 | `--spades_kmers` | auto | K-mer sizes for SPAdes assembly |
