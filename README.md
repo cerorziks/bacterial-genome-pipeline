@@ -115,7 +115,8 @@ graph TD
 ## Environment Setup
 
 ### 1. Install Java and Docker
-Ensure your system has Java and Docker installed. On Ubuntu/Debian:
+
+**Linux (Ubuntu/Debian):**
 ```bash
 sudo apt update
 sudo apt install openjdk-17-jdk docker.io
@@ -124,11 +125,29 @@ sudo usermod -aG docker $USER
 # Log out and back in for changes to take effect
 ```
 
+**macOS:**
+Using [Homebrew](https://brew.sh/):
+```bash
+# Install OpenJDK 17
+brew install openjdk@17
+
+# Install Docker Desktop
+brew install --cask docker
+```
+*Note: After installation, open "Docker" from your Applications folder to start the Docker daemon.*
+
 ### 2. Install Nextflow
+
+**Universal (Linux/macOS):**
 ```bash
 curl -s https://get.nextflow.io | bash
 sudo mv nextflow /usr/local/bin/
 sudo chmod +x /usr/local/bin/nextflow
+```
+
+**macOS (Alternative via Homebrew):**
+```bash
+brew install nextflow
 ```
 
 ## Quick Start
