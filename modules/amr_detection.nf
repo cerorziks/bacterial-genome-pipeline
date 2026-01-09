@@ -6,7 +6,7 @@
 
 process DOWNLOAD_AMR_DB {
     publishDir "${params.outdir}/databases", mode: 'copy'
-    storeDir "${params.amr_db}"
+    storeDir "${params.db_cache}/amrfinder"
     debug true
     
     output:

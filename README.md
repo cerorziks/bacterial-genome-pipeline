@@ -155,8 +155,67 @@ nextflow run main.nf \
 ```bash
 nextflow run main.nf \
   --input samplesheet.csv \
+  -profile docker
+```
+
+### 4. Run Directly from GitHub
+
+You can run this pipeline directly from the GitHub repository without cloning it manually. Nextflow will handle the downloading.
+
+**Basic Run:**
+```bash
+nextflow run cerorziks/bacterial-genome-pipeline \
+  --input samplesheet.csv \
   --outdir results \
-  --reference reference_genome.fasta \
+  -profile docker \
+  -r main
+```
+
+**Using a Specific Version:**
+```bash
+nextflow run cerorziks/bacterial-genome-pipeline \
+  -r v1.1.0 \
+  --input samplesheet.csv \
+  --outdir results \
+  -profile docker
+```
+
+## Database Management
+
+### Default Behavior
+By default, the pipeline automatically downloads necessary databases:
+- **Kraken2**: Downloads 'BabyKraken' (optimized 10MB DB) to `./kraken2_db/`
+- **AMRFinder**: Downloads latest AMR DB to `./amrfinder_db/`
+- **VFDB**: Downloads latest Virulence Factor DB to `./vfdb_db/`
+
+### Using Pre-downloaded Databases
+If you already have these databases downloaded (e.g., the full standard Kraken2 database), you can specify their paths to avoid re-downloading or to use a better resource.
+
+**Custom Kraken2 Database:**
+```bash
+nextflow run main.nf \
+  --input samples.csv \
+  --kraken_db /path/to/your/custom_kraken_db \
+  --outdir results \
+  -profile docker
+```
+
+**Custom AMRFinder Database:**
+```bash
+nextflow run main.nf \
+  --input samples.csv \
+  --amr_db /path/to/amrfinder_db \
+  --outdir results \
+  -profile docker
+```
+*Note: For AMRFinder, point to the directory containing the `latest` folder or the `AMR.LIB` file.*
+
+**Custom VFDB:**
+```bash
+nextflow run main.nf \
+  --input samples.csv \
+  --vfdb /path/to/VFDB_setB_pro.fas \
+  --outdir results \
   -profile docker
 ```
 
@@ -172,8 +231,9 @@ nextflow run main.nf \
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--reference` | null | Reference genome for phylogeny (FASTA) |
-| `--vfdb` | null | Path to VFDB database (auto-downloaded if not provided) |
-| `--amr_db` | './amrfinder_db' | Path to store/load AMRFinder database |
+| `--kraken_db` | null | Path to local Kraken2 database (skips download) |
+| `--vfdb` | null | Path to VFDB database (skips download) |
+| `--amr_db` | null | Path to AMRFinder database (skips download) |
 | `--skip_phylogeny` | false | Skip phylogenetic analysis |
 | `--skip_mlst` | false | Skip MLST typing |
 | `--assembler` | 'spades' | Assembler to use ('spades' or 'shovill') |

@@ -124,8 +124,13 @@ workflow {
     FASTP(reads_ch)
 
     // 2.0 Taxonomy verification
-    DOWNLOAD_KRAKEN2_DB()
-    KRAKEN2(FASTP.out.reads, DOWNLOAD_KRAKEN2_DB.out.db)
+    if (params.kraken_db) {
+        kraken_db = Channel.fromPath(params.kraken_db)
+    } else {
+        DOWNLOAD_KRAKEN2_DB()
+        kraken_db = DOWNLOAD_KRAKEN2_DB.out.db
+    }
+    KRAKEN2(FASTP.out.reads, kraken_db)
     
     // 2.1 SeqKit stats on trimmed reads
     SEQKIT_STATS(FASTP.out.reads)
@@ -155,12 +160,22 @@ workflow {
     PROKKA(assembly_ch)
     
     // 7. AMR detection
-    DOWNLOAD_AMR_DB()
-    AMRFINDERPLUS(PROKKA.out.faa, DOWNLOAD_AMR_DB.out.db)
+    if (params.amr_db) {
+        amr_db_ch = Channel.fromPath(params.amr_db)
+    } else {
+        DOWNLOAD_AMR_DB()
+        amr_db_ch = DOWNLOAD_AMR_DB.out.db
+    }
+    AMRFINDERPLUS(PROKKA.out.faa, amr_db_ch)
     
     // 8. Virulence factor detection
-    DOWNLOAD_VFDB()
-    VFDB_BLAST(PROKKA.out.faa, DOWNLOAD_VFDB.out.db)
+    if (params.vfdb) {
+        vfdb_ch = Channel.fromPath(params.vfdb)
+    } else {
+        DOWNLOAD_VFDB()
+        vfdb_ch = DOWNLOAD_VFDB.out.db
+    }
+    VFDB_BLAST(PROKKA.out.faa, vfdb_ch)
     
     // 9. MLST typing
     if (!params.skip_mlst) {

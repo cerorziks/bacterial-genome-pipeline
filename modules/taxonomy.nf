@@ -5,7 +5,7 @@
 */
 
 process DOWNLOAD_KRAKEN2_DB {
-    storeDir "${params.kraken2_db}"
+    storeDir "${params.db_cache}/kraken2"
     
     output:
     path("babykraken"), emit: db
