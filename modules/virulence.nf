@@ -13,11 +13,16 @@ process DOWNLOAD_VFDB {
     
     script:
     """
-    echo "Downloading VFDB database..."
-    curl -L -o VFDB_setB_pro.fas.gz http://www.mgc.ac.cn/VFs/Down/VFDB_setB_pro.fas.gz || \\
-    curl -L -o VFDB_setB_pro.fas.gz https://github.com/arpcard/VFDB/raw/master/VFDB_setB_pro.fas.gz
+    echo "[DB] Starting VFDB database download..."
+    if curl -L -o VFDB_setB_pro.fas.gz http://www.mgc.ac.cn/VFs/Down/VFDB_setB_pro.fas.gz; then
+        echo "Downloaded from primary source."
+    else
+        echo "Primary source failed, trying backup..."
+        curl -L -o VFDB_setB_pro.fas.gz https://github.com/arpcard/VFDB/raw/master/VFDB_setB_pro.fas.gz
+    fi
     
     gunzip -f VFDB_setB_pro.fas.gz
+    echo "[DB] VFDB download and extraction complete."
     """
 }
 

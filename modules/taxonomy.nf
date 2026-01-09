@@ -33,6 +33,7 @@ process KRAKEN2 {
     
     script:
     """
+    echo "[Taxonomy] Running Kraken2 for ${sample}..."
     kraken2 \\
         --db ${db} \\
         --threads $task.cpus \\

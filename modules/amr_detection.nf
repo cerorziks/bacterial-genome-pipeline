@@ -65,6 +65,7 @@ process AMRFINDERPLUS {
     
     script:
     """
+    echo "[AMR] Starting AMRFinderPlus for sample: ${sample}"
     # Use the provided database path
     # We check if the input is the base directory or the actual DB directory
     if [ -d "${amr_db}/latest" ]; then

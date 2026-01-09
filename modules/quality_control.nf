@@ -17,6 +17,7 @@ process FASTQC {
     
     script:
     """
+    echo "[QC] Running FastQC for ${sample}"
     fastqc -q -t $task.cpus ${read1} ${read2}
     """
 }
@@ -35,6 +36,7 @@ process FASTP {
     
     script:
     """
+    echo "[QC] Running fastp for ${sample}"
     fastp \\
         -i ${read1} \\
         -I ${read2} \\

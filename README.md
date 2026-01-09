@@ -183,6 +183,7 @@ nextflow run main.nf \
 | `--multiqc_title` | 'Bacterial Genome Analysis Report' | Title for MultiQC report |
 
 
+
 ## Output Structure
 
 ```
@@ -205,6 +206,7 @@ results/
 │   └── snp_distances.tsv # Pairwise SNP distances
 ├── multiqc/             # MultiQC dashboard (all technical reports)
 ├── final_report/        # Consolidated standalone summary report (HTML)
+├── databases/           # Downloaded databases (VFDB, AMRFinder)
 └── pipeline_info/       # Pipeline execution reports
 ```
 

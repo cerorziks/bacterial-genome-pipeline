@@ -19,6 +19,7 @@ process SPADES {
     script:
     def kmers = params.spades_kmers == 'auto' ? '' : "-k ${params.spades_kmers}"
     """
+    echo "[Assembly] Running SPAdes for ${sample}..."
     spades.py \\
         -1 ${read1} \\
         -2 ${read2} \\
@@ -43,6 +44,7 @@ process SHOVILL {
     
     script:
     """
+    echo "[Assembly] Running Shovill for ${sample}..."
     shovill \\
         --R1 ${read1} \\
         --R2 ${read2} \\
