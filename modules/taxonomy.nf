@@ -12,10 +12,17 @@ process DOWNLOAD_KRAKEN2_DB {
     
     script:
     """
-    if [ ! -d "babykraken" ]; then
-        mkdir babykraken
-        curl -L "https://github.com/MDU-PHL/babykraken/raw/master/dist/babykraken.tar.gz" | tar xz -C babykraken --strip-components=1
+    # Check if babykraken database already exists
+    if [ -d "babykraken" ] && [ -f "babykraken/hash.k2d" ]; then
+        echo "Kraken2 (BabyKraken) database already exists. Skipping download." >&2
+        echo "Database location: \$(pwd)/babykraken" >&2
+        exit 0
     fi
+    
+    echo "Downloading BabyKraken database..." >&2
+    mkdir -p babykraken
+    curl -L "https://github.com/MDU-PHL/babykraken/raw/master/dist/babykraken.tar.gz" | tar xz -C babykraken --strip-components=1
+    echo "BabyKraken download complete." >&2
     """
 }
 
