@@ -38,7 +38,8 @@ include { SEQKIT_STATS_ASSEMBLY   } from './modules/utils'
 include { PANAROO                 } from './modules/pangenomics'
 include { KRAKEN2                 } from './modules/taxonomy'
 include { DOWNLOAD_KRAKEN2_DB     } from './modules/taxonomy'
-include { MULTIQC, COMPILED_HTML_REPORT } from './modules/reporting'
+include { MULTIQC } from './modules/reporting'
+include { COMPILED_HTML_REPORT } from './modules/reporting'
 
 /*
 ========================================================================================
