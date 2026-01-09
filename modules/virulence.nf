@@ -13,16 +13,23 @@ process DOWNLOAD_VFDB {
     
     script:
     """
-    echo "[DB] Starting VFDB database download..."
+    # Check if VFDB database already exists
+    if [ -f "VFDB_setB_pro.fas" ]; then
+        echo "VFDB database already exists. Skipping download." >&2
+        echo "Database location: \$(pwd)/VFDB_setB_pro.fas" >&2
+        exit 0
+    fi
+    
+    echo "[DB] Starting VFDB database download..." >&2
     if curl -L -o VFDB_setB_pro.fas.gz http://www.mgc.ac.cn/VFs/Down/VFDB_setB_pro.fas.gz; then
-        echo "Downloaded from primary source."
+        echo "Downloaded from primary source." >&2
     else
-        echo "Primary source failed, trying backup..."
+        echo "Primary source failed, trying backup..." >&2
         curl -L -o VFDB_setB_pro.fas.gz https://github.com/arpcard/VFDB/raw/master/VFDB_setB_pro.fas.gz
     fi
     
     gunzip -f VFDB_setB_pro.fas.gz
-    echo "[DB] VFDB download and extraction complete."
+    echo "[DB] VFDB download and extraction complete." >&2
     """
 }
 

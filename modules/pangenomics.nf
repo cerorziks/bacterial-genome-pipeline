@@ -28,7 +28,7 @@ process PANAROO {
         touch results/gene_presence_absence.csv
         touch results/pan_genome_reference.fa
     else
-        echo "[Pangenomics] Running Panaroo on $num_files input files..."
+        echo "[Pangenomics] Running Panaroo on \$num_files input files..."
         panaroo \
             -i ${gffs} \
             -o results \

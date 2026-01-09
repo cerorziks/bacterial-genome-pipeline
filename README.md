@@ -6,7 +6,7 @@ A comprehensive Nextflow pipeline for analyzing bacterial genomes from Illumina 
 
 - **Quality Control**: FastQC and fastp for read quality assessment and trimming
 - **Statistics**: **SeqKit** for rapid read and assembly metrics
-- **Assembly**: de novo assembly using **SPAdes** (default) or **Shovill** (faster)
+- **Assembly**: de novo assembly using **Shovill** (default) or **SPAdes** (optional)
 - **Assembly QC**: QUAST quality metrics for assembly assessment
 - **Annotation**: Prokka genome annotation
 - **Taxonomy**: **Kraken2** with 'babykraken' database for rapid species verification
@@ -46,8 +46,8 @@ graph TD
     C --> KR[Kraken2 Taxonomy]
     C --> E{Assembly Selection}
     
-    E -- Default --> E1[SPAdes Assembly]
-    E -- Option --> E2[Shovill Assembly]
+    E -- Default --> E2[Shovill Assembly]
+    E -- Option --> E1[SPAdes Assembly]
     
     E1 --> F[Assembly Results]
     E2 --> F
@@ -108,14 +108,15 @@ graph TD
 - **Git** (for cloning the repository)
 
 ### Hardware Recommendations
-- **Minimum**: 8 CPUs, 32 GB RAM, 100 GB Free Disk Space
-- **Recommended**: 16 CPUs, 128 GB RAM, 500 GB Free Disk Space (for large datasets)
-- *Note: SPAdes assembly is memory-intensive. For large genomes or high depth, ensure at least 32GB RAM is available.*
+- **Minimum**: 4 CPUs, 8 GB RAM, 50 GB Free Disk Space
+- **Recommended**: 8 CPUs, 16 GB RAM, 100 GB Free Disk Space
+- *Note: The pipeline has been optimized for standard laptops (e.g., MacBook Air/Pro, standard Windows laptops).*
 
 ## Environment Setup
 
 ### 1. Install Java and Docker
-Ensure your system has Java and Docker installed. On Ubuntu/Debian:
+
+**Linux (Ubuntu/Debian):**
 ```bash
 sudo apt update
 sudo apt install openjdk-17-jdk docker.io
@@ -124,11 +125,29 @@ sudo usermod -aG docker $USER
 # Log out and back in for changes to take effect
 ```
 
+**macOS:**
+Using [Homebrew](https://brew.sh/):
+```bash
+# Install OpenJDK 17
+brew install openjdk@17
+
+# Install Docker Desktop
+brew install --cask docker
+```
+*Note: After installation, open "Docker" from your Applications folder to start the Docker daemon.*
+
 ### 2. Install Nextflow
+
+**Universal (Linux/macOS):**
 ```bash
 curl -s https://get.nextflow.io | bash
 sudo mv nextflow /usr/local/bin/
 sudo chmod +x /usr/local/bin/nextflow
+```
+
+**macOS (Alternative via Homebrew):**
+```bash
+brew install nextflow
 ```
 
 ## Quick Start
@@ -142,7 +161,14 @@ sudo mv nextflow /usr/local/bin/
 
 ### 2. Prepare Input Samplesheet
 
-Create a CSV file with your samples:
+You can generate the samplesheet automatically using the provided helper script:
+
+```bash
+# Generate samplesheet from a directory of FASTQ files
+python3 bin/fastq_to_samplesheet.py /path/to/fastq_directory -o samples.csv
+```
+
+Or create a CSV file manually:
 
 ```csv
 sample,read1,read2
@@ -192,18 +218,64 @@ nextflow run cerorziks/bacterial-genome-pipeline \
 
 ## Database Management
 
-### Default Behavior
-By default, the pipeline automatically downloads necessary databases:
-- **Kraken2**: Downloads 'BabyKraken' (optimized 10MB DB) to `./kraken2_db/`
-- **AMRFinder**: Downloads latest AMR DB to `./amrfinder_db/`
-- **VFDB**: Downloads latest Virulence Factor DB to `./vfdb_db/`
+### Recommended Setup: Pre-download Databases
+
+**For the best experience, we recommend downloading databases before your first run.** This avoids potential network issues during analysis and ensures faster subsequent runs.
+
+#### Download All Databases (Recommended)
+
+Run this **once** to download all databases to a shared location:
+
+```bash
+# Create a databases directory
+mkdir -p ~/pipeline_databases
+cd ~/pipeline_databases
+
+# 1. Download AMRFinder database (~450MB, 5-10 minutes)
+docker run --rm -v $(pwd):/data staphb/ncbi-amrfinderplus:latest \
+  amrfinder_update -d /data/amrfinder
+
+# 2. Download VFDB database (~50MB)
+mkdir -p vfdb
+curl -L -o vfdb/VFDB_setB_pro.fas.gz http://www.mgc.ac.cn/VFs/Down/VFDB_setB_pro.fas.gz
+gunzip vfdb/VFDB_setB_pro.fas.gz
+
+# 3. Download BabyKraken database (~10MB) - or use a larger standard database
+mkdir -p kraken2
+curl -L "https://github.com/MDU-PHL/babykraken/raw/master/dist/babykraken.tar.gz" | \
+  tar xz -C kraken2 --strip-components=1
+```
+
+#### Run Pipeline with Pre-downloaded Databases
+
+```bash
+nextflow run cerorziks/bacterial-genome-pipeline \
+  -r bacterial-genome-pipeline_v2 \
+  --input samplesheet.csv \
+  --outdir results \
+  --amr_db ~/pipeline_databases/amrfinder \
+  --vfdb ~/pipeline_databases/vfdb/VFDB_setB_pro.fas \
+  --kraken_db ~/pipeline_databases/kraken2 \
+  -profile docker
+```
+
+### Default Behavior (Auto-download)
+
+If you don't specify database paths, the pipeline automatically downloads them to `./databases/`:
+- **Kraken2**: `./databases/kraken2/babykraken/` (~10MB)
+- **AMRFinder**: `./databases/amrfinder/latest/` (~450MB)
+- **VFDB**: `./databases/vfdb/VFDB_setB_pro.fas` (~50MB)
+
+**Smart Caching:** Once downloaded, databases are cached and reused automatically in future runs from the same directory.
 
 ### Using Pre-downloaded Databases
-If you already have these databases downloaded (e.g., the full standard Kraken2 database), you can specify their paths to avoid re-downloading or to use a better resource.
+
+If you already have these databases, specify their paths:
 
 **Custom Kraken2 Database:**
 ```bash
-nextflow run main.nf \
+nextflow run cerorziks/bacterial-genome-pipeline \
+  -r bacterial-genome-pipeline_v2 \
   --input samples.csv \
   --kraken_db /path/to/your/custom_kraken_db \
   --outdir results \
@@ -212,17 +284,19 @@ nextflow run main.nf \
 
 **Custom AMRFinder Database:**
 ```bash
-nextflow run main.nf \
+nextflow run cerorziks/bacterial-genome-pipeline \
+  -r bacterial-genome-pipeline_v2 \
   --input samples.csv \
   --amr_db /path/to/amrfinder_db \
   --outdir results \
   -profile docker
 ```
-*Note: For AMRFinder, point to the directory containing the `latest` folder or the `AMR.LIB` file.*
+*Note: For AMRFinder, point to the directory containing the `latest` folder or dated folder (e.g., `2025-12-03.1`).*
 
 **Custom VFDB:**
 ```bash
-nextflow run main.nf \
+nextflow run cerorziks/bacterial-genome-pipeline \
+  -r bacterial-genome-pipeline_v2 \
   --input samples.csv \
   --vfdb /path/to/VFDB_setB_pro.fas \
   --outdir results \
@@ -247,7 +321,7 @@ nextflow run main.nf \
 | `--amr_db` | null | Path to AMRFinder database (skips download) |
 | `--skip_phylogeny` | false | Skip phylogenetic analysis |
 | `--skip_mlst` | false | Skip MLST typing |
-| `--assembler` | 'spades' | Assembler to use ('spades' or 'shovill') |
+| `--assembler` | 'shovill' | Assembler to use ('shovill' or 'spades') |
 | `--fastp_qualified_quality_phred` | 20 | Minimum quality score for fastp filtering |
 | `--fastp_min_length` | 50 | Minimum read length after trimming |
 | `--spades_kmers` | auto | K-mer sizes for SPAdes assembly |
