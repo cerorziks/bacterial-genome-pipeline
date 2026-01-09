@@ -35,13 +35,17 @@ process KRAKEN2 {
     """
     echo "[Taxonomy] Running Kraken2 for ${sample}..."
     
-    # Robustly find the actual database directory containing the hash.k2d file
-    # If find returns nothing, fallback to the staged dir itself
-    TARGET_FILE=\$(find -L ${db} -name "hash.k2d" | head -n 1)
+    # 1. Set the DB path variable to current dir as a safety net
+    export KRAKEN2_DB_PATH=.
+
+    # 2. Robustly find the actual database directory containing the hash.k2d file
+    #    Broaden search to catch any file ending in hash.k2d
+    TARGET_FILE=\$(find -L ${db} -name "*hash.k2d" | head -n 1)
     
     if [ -z "\$TARGET_FILE" ]; then
-        echo "WARNING: Could not find hash.k2d in ${db}. Listing contents:"
-        ls -R ${db}
+        echo "WARNING: Could not find *hash.k2d in ${db}. Listing contents for debug:"
+        ls -laR ${db}
+        # Fallback to the staged directory path
         DB_DIR=${db}
     else
         DB_DIR=\$(dirname \$TARGET_FILE)
