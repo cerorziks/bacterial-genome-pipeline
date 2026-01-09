@@ -23,7 +23,8 @@ process DOWNLOAD_AMR_DB {
     UPDATE_PID=\$!
     
     # Watcher loop to report percentage and size
-    echo "[Download Progress: 0%] (Connecting to NCBI...)"
+    echo "[Download Progress: 0%] (Connecting to NCBI...)" >&2
+    LAST_PERCENT=0
     while kill -0 \$UPDATE_PID 2>/dev/null; do
         # Count all files in dated directories
         SIZE=\$(du -sk 2* 2>/dev/null | cut -f1 | awk '{s+=\$1} END {print s+0}')
@@ -31,21 +32,25 @@ process DOWNLOAD_AMR_DB {
         PERCENT=\$((SIZE * 100 / 450000))
         if [ \$PERCENT -gt 100 ]; then PERCENT=100; fi
         
-        echo "[Download Progress: \$PERCENT%] (Downloaded: \${SIZE}KB / ~450,000KB)"
-        sleep 10
+        # Only print if percentage changed (reduce spam)
+        if [ \$PERCENT -ne \$LAST_PERCENT ]; then
+            echo "[Download Progress: \$PERCENT%] (Downloaded: \${SIZE}KB / ~450,000KB)" >&2
+            LAST_PERCENT=\$PERCENT
+        fi
+        sleep 5
     done
     
     wait \$UPDATE_PID
     EXIT_CODE=\$?
     
     if [ \$EXIT_CODE -eq 0 ]; then
-        echo "Download completed successfully."
+        echo "Download completed successfully." >&2
     else
-        echo "--------------------------------------------------------"
-        echo "ERROR: Database download failed (Exit Code: \$EXIT_CODE)"
-        echo "Last lines of the error log:"
-        tail -n 15 amrfinder_update.log
-        echo "--------------------------------------------------------"
+        echo "--------------------------------------------------------" >&2
+        echo "ERROR: Database download failed (Exit Code: \$EXIT_CODE)" >&2
+        echo "Last lines of the error log:" >&2
+        tail -n 15 amrfinder_update.log >&2
+        echo "--------------------------------------------------------" >&2
         exit \$EXIT_CODE
     fi
     """
